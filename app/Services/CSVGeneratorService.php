@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Optimization;
@@ -51,7 +52,7 @@ class CSVGeneratorService
                 $cost->amount
             ]);
 
-        $header = [['project', 'period', 'cost']];
+        $header = collect([['project', 'period', 'cost']]); // Convertir a Collection
         return $this->arrayToCSV($header->concat($costs)->toArray());
     }
 
@@ -70,7 +71,7 @@ class CSVGeneratorService
                 $reward->amount
             ]);
 
-        $header = [['project', 'period', 'reward']];
+        $header = collect([['project', 'period', 'reward']]); // Convertir a Collection
         return $this->arrayToCSV($header->concat($rewards)->toArray());
     }
 
@@ -87,7 +88,7 @@ class CSVGeneratorService
                 $balance->min_balance
             ]);
 
-        $header = [['Period', 'MinBal']];
+        $header = collect([['Period', 'MinBal']]); // Convertir a Collection
         return $this->arrayToCSV($header->concat($balances)->toArray());
     }
 
@@ -105,7 +106,7 @@ class CSVGeneratorService
                 $group->project_name
             ]);
 
-        $header = [['group', 'project']];
+        $header = collect([['group', 'project']]); // Convertir a Collection
         return $this->arrayToCSV($header->concat($groups)->toArray());
     }
 

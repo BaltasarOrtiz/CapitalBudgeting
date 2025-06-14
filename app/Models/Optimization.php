@@ -113,9 +113,9 @@ class Optimization extends Model
     public function getProjectNames(): array
     {
         return $this->projectInputs()
-                   ->distinct('project_name')
-                   ->pluck('project_name')
-                   ->toArray();
+            ->distinct('project_name')
+            ->pluck('project_name')
+            ->toArray();
     }
 
     public function getTotalProjectsCount(): int
