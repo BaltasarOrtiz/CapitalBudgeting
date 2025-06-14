@@ -88,91 +88,7 @@ class Optimization extends Model
         return $this->hasMany(PeriodCashFlow::class);
     }
 
-    // Métodos para generar CSVs de entrada
-    public function generateParametersCSV(): string
-    {
-        $data = [
-            ['Parameter', 'Value'],
-            ['T', $this->total_periods],
-            ['Rate', $this->discount_rate],
-            ['InitBal', $this->initial_balance],
-            ['NbMustTakeOne', $this->nb_must_take_one]
-        ];
-
-        return $this->arrayToCSV($data);
-    }
-
-    public function generateProjectCostsCSV(): string
-    {
-        $costs = $this->projectCosts()
-                     ->orderBy('project_name')
-                     ->orderBy('period')
-                     ->get()
-                     ->map(fn($c) => [
-                         $c->project_name,
-                         $c->period,
-                         $c->amount
-                     ]);
-
-        return $this->arrayToCSV([['project', 'period', 'cost']] + $costs->toArray());
-    }
-
-    public function generateProjectRewardsCSV(): string
-    {
-        $rewards = $this->projectRewards()
-                       ->orderBy('project_name')
-                       ->orderBy('period')
-                       ->get()
-                       ->map(fn($r) => [
-                           $r->project_name,
-                           $r->period,
-                           $r->amount
-                       ]);
-
-        return $this->arrayToCSV([['project', 'period', 'reward']] + $rewards->toArray());
-    }
-
-    public function generateMinBalCSV(): string
-    {
-        $balances = $this->balanceConstraints()
-                        ->orderBy('period')
-                        ->get()
-                        ->map(fn($b) => [
-                            $b->period,
-                            $b->min_balance
-                        ]);
-
-        return $this->arrayToCSV([['Period', 'MinBal']] + $balances->toArray());
-    }
-
-    public function generateMustTakeOneCSV(): string
-    {
-        $groups = $this->projectGroups()
-                      ->orderBy('group_id')
-                      ->orderBy('project_name')
-                      ->get()
-                      ->map(fn($g) => [
-                          $g->group_id,
-                          $g->project_name
-                      ]);
-
-        return $this->arrayToCSV([['group', 'project']] + $groups->toArray());
-    }
-
-    // Método auxiliar para generar CSV
-    private function arrayToCSV(array $data): string
-    {
-        $output = fopen('php://temp', 'r+');
-        foreach ($data as $row) {
-            fputcsv($output, $row);
-        }
-        rewind($output);
-        $csv = stream_get_contents($output);
-        fclose($output);
-        return $csv;
-    }
-
-    // Estados
+    // Estados (solo lógica del modelo)
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
@@ -188,12 +104,22 @@ class Optimization extends Model
         return $this->status === 'failed';
     }
 
-    // Obtener lista única de proyectos
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    // Métodos auxiliares del modelo
     public function getProjectNames(): array
     {
         return $this->projectInputs()
                    ->distinct('project_name')
                    ->pluck('project_name')
                    ->toArray();
+    }
+
+    public function getTotalProjectsCount(): int
+    {
+        return count($this->getProjectNames());
     }
 }
