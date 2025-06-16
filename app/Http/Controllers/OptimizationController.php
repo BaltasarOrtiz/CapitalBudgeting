@@ -15,15 +15,33 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Inertia\Inertia;
 
 class OptimizationController extends Controller
 {
-    public function __construct(
+  /*   public function __construct(
         private CSVGeneratorService $csvGenerator,
         private ResultsProcessorService $resultsProcessor,
         private COSService $cosService,
         private WatsonMLService $watsonService
     ) {}
+ */
+    public function inicio()
+    {
+        return Inertia::render('dashboard/Inicio');
+    }
+
+    public function historial()
+    {
+        // Aquí puedes cargar datos del historial desde la base de datos
+        return Inertia::render('dashboard/Historial');
+    }
+
+    public function resultados()
+    {
+        // Aquí puedes cargar los resultados desde la base de datos
+        return Inertia::render('dashboard/Resultados');
+    }
 
     /**
      * Listar optimizaciones del usuario

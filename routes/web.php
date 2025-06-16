@@ -8,9 +8,20 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Ruta principal del dashboard que redirige a inicio
+    Route::get('/dashboard', function () {
+        return redirect()->route('dashboard.inicio');
+    })->name('dashboard');
+
+    // Rutas del dashboard modularizado
+    Route::get('/dashboard/inicio', [OptimizationController::class, 'inicio'])->name('dashboard.inicio');
+    Route::get('/dashboard/historial', [OptimizationController::class, 'historial'])->name('dashboard.historial');
+    Route::get('/dashboard/resultados', [OptimizationController::class, 'resultados'])->name('dashboard.resultados');
+
+    // Rutas adicionales que puedas necesitar
+    Route::post('/dashboard/optimize', [OptimizationController::class, 'optimize'])->name('dashboard.optimize');
+});
 
 Route::middleware(['auth'])->prefix('api/v1/optimizations')->group(function () {
     // CRUD básico
