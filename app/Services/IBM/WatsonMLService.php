@@ -28,16 +28,14 @@ class WatsonMLService
     {
         try {
             $token = $this->authService->getToken();
-            /* $url = "{$this->endpoint}/v2/jobs/{$this->jobId}/runs?space_id={$this->spaceId}"; */
-            $url = "https://api.dataplatform.cloud.ibm.com/v2/jobs/e2e95042-245b-4eb9-8d59-a502dcda33e7/runs?space_id=fb72d28b-7e44-4737-90c0-71284ba5c2bd";
+            $url = "{$this->endpoint}/v2/jobs/{$this->jobId}/runs?space_id={$this->spaceId}";
 
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
                 'Content-Type' => 'application/json',
-                'Content-Length' => 0,
             ])
+            ->withBody('{}', 'application/json')
             ->post($url);
-            dd($response);
 
 
             if (!$response->successful()) {
