@@ -4,6 +4,7 @@ return [
     // Opción 1: Incluir solo rutas específicas (recomendado)
     'only' => [
         'dashboard.*',
+        'home',
         'login',
         'logout',
         'register',

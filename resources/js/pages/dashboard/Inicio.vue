@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { ref, reactive, computed, watch } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,6 +23,7 @@ interface GlobalParams {
     tasaDescuento: string;
     saldoInicial: string;
     nbMustTakeOne: string;
+    description?: string;
 }
 
 interface Project {
@@ -57,7 +58,8 @@ const globalParams = reactive<GlobalParams>({
     numPeriodos: '',
     tasaDescuento: '',
     saldoInicial: '',
-    nbMustTakeOne: ''
+    nbMustTakeOne: '',
+    description: ''
 });
 
 // Proyectos con sus valores base
@@ -93,8 +95,8 @@ const projectRewards = ref<Record<string, ProjectReward[]>>({});
 // Computed para validar parámetros globales
 const areGlobalParamsValid = computed(() => {
     return globalParams.numPeriodos &&
-           globalParams.tasaDescuento &&
-           globalParams.saldoInicial;
+        globalParams.tasaDescuento &&
+        globalParams.saldoInicial;
 });
 
 // Computed para obtener lista de proyectos seleccionados
@@ -106,7 +108,7 @@ const selectedProjectsList = computed(() => {
 watch(() => globalParams.numPeriodos, (newValue) => {
     if (newValue) {
         const periods = parseInt(newValue);
-        minBalances.value = Array.from({length: periods}, (_, i) => ({
+        minBalances.value = Array.from({ length: periods }, (_, i) => ({
             periodo: i + 1,
             saldo: 0
         }));
@@ -174,7 +176,7 @@ const editProject = (index: number, field: keyof Project, value: string | number
 const initializeGroups = () => {
     if (!numGroups.value) return;
 
-    const groupsArray: ProjectGroup[] = Array.from({length: parseInt(numGroups.value)}, (_, i) => ({
+    const groupsArray: ProjectGroup[] = Array.from({ length: parseInt(numGroups.value) }, (_, i) => ({
         id: i + 1,
         name: `Grupo ${i + 1}`,
         projects: []
@@ -195,7 +197,7 @@ const handleProjectSelection = (groupId: number, projectName: string, isSelected
         // Agregar proyecto al grupo
         groups.value = groups.value.map(group =>
             group.id === groupId
-                ? {...group, projects: [...group.projects, projectName]}
+                ? { ...group, projects: [...group.projects, projectName] }
                 : group
         );
 
@@ -208,12 +210,12 @@ const handleProjectSelection = (groupId: number, projectName: string, isSelected
         // Remover proyecto del grupo
         groups.value = groups.value.map(group =>
             group.id === groupId
-                ? {...group, projects: group.projects.filter(p => p !== projectName)}
+                ? { ...group, projects: group.projects.filter(p => p !== projectName) }
                 : group
         );
 
         // Desmarcar proyecto
-        const newSelected = {...selectedProjects.value};
+        const newSelected = { ...selectedProjects.value };
         delete newSelected[projectName];
         selectedProjects.value = newSelected;
     }
@@ -230,7 +232,7 @@ const generateDynamicTables = () => {
         const project = projects.value.find(p => p.nombre === projectName);
         const baseCost = project?.costoBase || 0;
 
-        costs[projectName] = Array.from({length: periods}, (_, i) => ({
+        costs[projectName] = Array.from({ length: periods }, (_, i) => ({
             periodo: i + 1,
             costo: baseCost // Usar el costo base del proyecto
         }));
@@ -243,7 +245,7 @@ const generateDynamicTables = () => {
         const project = projects.value.find(p => p.nombre === projectName);
         const baseReward = project?.recompensaBase || 0;
 
-        rewards[projectName] = Array.from({length: periods}, (_, i) => ({
+        rewards[projectName] = Array.from({ length: periods }, (_, i) => ({
             periodo: i + 1,
             recompensa: baseReward // Usar la recompensa base del proyecto
         }));
@@ -280,13 +282,21 @@ const handleProjectRewardChange = (project: string, period: number, value: strin
 const generateJSON = () => {
     const selectedList = selectedProjectsList.value;
 
-    // Formato parameters.csv
+    /* // Formato parameters.csv
     const parameters = [
         { Parameter: 'T', Value: parseInt(globalParams.numPeriodos) },
         { Parameter: 'NbMustTakeOne', Value: parseInt(globalParams.nbMustTakeOne) },
         { Parameter: 'Rate', Value: parseFloat(globalParams.tasaDescuento) },
-        { Parameter: 'InitBal', Value: parseInt(globalParams.saldoInicial) }
-    ];
+        { Parameter: 'InitBal', Value: parseInt(globalParams.saldoInicial) },
+        { Parameter: 'Description', Value: globalParams.description || '' }
+    ]; */
+    const parameters = {
+        T: parseInt(globalParams.numPeriodos),
+        NbMustTakeOne: parseInt(globalParams.nbMustTakeOne),
+        Rate: parseFloat(globalParams.tasaDescuento),
+        InitBal: parseInt(globalParams.saldoInicial),
+        Description: globalParams.description || ''
+    };
 
     // Formato MinBal.csv
     const minBal = minBalances.value.map(item => ({
@@ -295,7 +305,7 @@ const generateJSON = () => {
     }));
 
     // Formato MustTakeOne.csv
-    const mustTakeOne: Array<{group: number, project: string}> = [];
+    const mustTakeOne: Array<{ group: number, project: string }> = [];
     groups.value.forEach(group => {
         group.projects.forEach(project => {
             mustTakeOne.push({
@@ -306,7 +316,7 @@ const generateJSON = () => {
     });
 
     // Formato ProjectCosts.csv
-    const projectCostsData: Array<{project: string, period: number, cost: number}> = [];
+    const projectCostsData: Array<{ project: string, period: number, cost: number }> = [];
     selectedList.forEach(project => {
         projectCosts.value[project].forEach(cost => {
             projectCostsData.push({
@@ -318,7 +328,7 @@ const generateJSON = () => {
     });
 
     // Formato ProjectRewards.csv
-    const projectRewardsData: Array<{project: string, period: number, reward: number}> = [];
+    const projectRewardsData: Array<{ project: string, period: number, reward: number }> = [];
     selectedList.forEach(project => {
         projectRewards.value[project].forEach(reward => {
             projectRewardsData.push({
@@ -342,18 +352,29 @@ const generateJSON = () => {
 const handleSubmit = () => {
     const jsonData = generateJSON();
     console.log('Datos a enviar:', JSON.stringify(jsonData, null, 2));
+    router.post('/optimizations', jsonData, {
+        onSuccess: () => {
+            alert('Modelo de optimización enviado correctamente');
+        },
+        onError: (error) => {
+            console.error('Error al enviar el modelo:', error);
+            alert('Error al enviar el modelo. Por favor, intente nuevamente.');
+        }
+    });
     alert('Entrada del modelo enviada correctamente');
 };
 </script>
 
 <template>
+
     <Head title="Inicio - Capital Budgeting" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <!-- Header del Dashboard -->
             <div class="mb-6">
-                <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+                <h1
+                    class="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent mb-2">
                     Configuración del Modelo
                 </h1>
                 <p class="text-blue-100/80">
@@ -376,35 +397,34 @@ const handleSubmit = () => {
                         <div class="grid grid-cols-3 gap-4 mb-6">
                             <div>
                                 <label class="block text-blue-200 text-sm mb-2">Número de períodos (T) *</label>
-                                <input
-                                    type="number"
-                                    v-model="globalParams.numPeriodos"
+                                <input type="number" v-model="globalParams.numPeriodos"
                                     @input="handleGlobalParamChange('numPeriodos', ($event.target as HTMLInputElement).value)"
                                     class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    required
-                                />
+                                    required />
                             </div>
                             <div>
                                 <label class="block text-blue-200 text-sm mb-2">Tasa de descuento (Rate) *</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    v-model="globalParams.tasaDescuento"
+                                <input type="number" step="0.01" v-model="globalParams.tasaDescuento"
                                     @input="handleGlobalParamChange('tasaDescuento', ($event.target as HTMLInputElement).value)"
                                     class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    required
-                                />
+                                    required />
                             </div>
                             <div>
                                 <label class="block text-blue-200 text-sm mb-2">Saldo Inicial (InitBal) *</label>
-                                <input
-                                    type="number"
-                                    v-model="globalParams.saldoInicial"
+                                <input type="number" v-model="globalParams.saldoInicial"
                                     @input="handleGlobalParamChange('saldoInicial', ($event.target as HTMLInputElement).value)"
                                     class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    required
-                                />
+                                    required />
                             </div>
+
+                        </div>
+                        <div>
+                            <label class="block text-blue-200 text-sm mb-2">Descripcion</label>
+                            <textarea v-model="globalParams.description"
+                                @input="handleGlobalParamChange('description', ($event.target as HTMLTextAreaElement).value || '')"
+                                class="w-full bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 resize-y"
+                                rows="2">
+                            </textarea>
                         </div>
                         <p class="text-blue-200/60 text-sm">* Todos los campos son obligatorios para continuar</p>
                     </div>
@@ -417,11 +437,10 @@ const handleSubmit = () => {
 
                         <!-- Botón para agregar proyecto -->
                         <div class="flex justify-between items-center mb-4">
-                            <p class="text-blue-200 text-sm">Configure los proyectos disponibles con sus costos y recompensas base</p>
-                            <button
-                                @click="showAddProject = !showAddProject"
-                                class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded transition-colors text-sm"
-                            >
+                            <p class="text-blue-200 text-sm">Configure los proyectos disponibles con sus costos y
+                                recompensas base</p>
+                            <button @click="showAddProject = !showAddProject"
+                                class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded transition-colors text-sm">
                                 + Agregar Proyecto
                             </button>
                         </div>
@@ -432,45 +451,30 @@ const handleSubmit = () => {
                             <div class="grid grid-cols-3 gap-4 mb-4">
                                 <div>
                                     <label class="block text-blue-200 text-sm mb-2">Nombre del Proyecto *</label>
-                                    <input
-                                        type="text"
-                                        v-model="newProject.nombre"
-                                        @keyup.enter="addNewProject"
+                                    <input type="text" v-model="newProject.nombre" @keyup.enter="addNewProject"
                                         placeholder="Ej: Proyecto_Alpha"
-                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    />
+                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400" />
                                 </div>
                                 <div>
                                     <label class="block text-blue-200 text-sm mb-2">Costo Base *</label>
-                                    <input
-                                        type="number"
-                                        v-model="newProject.costoBase"
-                                        placeholder="0"
-                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    />
+                                    <input type="number" v-model="newProject.costoBase" placeholder="0"
+                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400" />
                                 </div>
                                 <div>
                                     <label class="block text-blue-200 text-sm mb-2">Recompensa Base *</label>
-                                    <input
-                                        type="number"
-                                        v-model="newProject.recompensaBase"
-                                        placeholder="0"
-                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    />
+                                    <input type="number" v-model="newProject.recompensaBase" placeholder="0"
+                                        class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400" />
                                 </div>
                             </div>
                             <div class="flex gap-3">
-                                <button
-                                    @click="addNewProject"
+                                <button @click="addNewProject"
                                     :disabled="!newProject.nombre.trim() || newProject.costoBase <= 0 || newProject.recompensaBase <= 0"
-                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors"
-                                >
+                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
                                     Agregar Proyecto
                                 </button>
                                 <button
                                     @click="showAddProject = false; newProject.nombre = ''; newProject.costoBase = 0; newProject.recompensaBase = 0;"
-                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors"
-                                >
+                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors">
                                     Cancelar
                                 </button>
                             </div>
@@ -488,37 +492,27 @@ const handleSubmit = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(project, index) in projects" :key="project.nombre" class="border-t border-white/10">
+                                    <tr v-for="(project, index) in projects" :key="project.nombre"
+                                        class="border-t border-white/10">
                                         <td class="px-4 py-3">
-                                            <input
-                                                type="text"
-                                                :value="project.nombre"
+                                            <input type="text" :value="project.nombre"
                                                 @input="editProject(index, 'nombre', ($event.target as HTMLInputElement).value)"
-                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                            />
+                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400" />
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                :value="project.costoBase"
+                                            <input type="number" :value="project.costoBase"
                                                 @input="editProject(index, 'costoBase', ($event.target as HTMLInputElement).value)"
-                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                            />
+                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400" />
                                         </td>
                                         <td class="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                :value="project.recompensaBase"
+                                            <input type="number" :value="project.recompensaBase"
                                                 @input="editProject(index, 'recompensaBase', ($event.target as HTMLInputElement).value)"
-                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                            />
+                                                class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400" />
                                         </td>
                                         <td class="px-4 py-3">
-                                            <button
-                                                @click="removeProject(project.nombre)"
+                                            <button @click="removeProject(project.nombre)"
                                                 class="text-red-400 hover:text-red-300 text-sm"
-                                                title="Eliminar proyecto"
-                                            >
+                                                title="Eliminar proyecto">
                                                 Eliminar
                                             </button>
                                         </td>
@@ -531,17 +525,11 @@ const handleSubmit = () => {
                         <div class="mb-4">
                             <label class="block text-blue-200 text-sm mb-2">Cantidad de grupos</label>
                             <div class="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    v-model="numGroups"
+                                <input type="number" v-model="numGroups"
                                     class="w-48 px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
-                                    placeholder="Ej: 2"
-                                />
-                                <button
-                                    @click="initializeGroups"
-                                    :disabled="!numGroups || projects.length === 0"
-                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors"
-                                >
+                                    placeholder="Ej: 2" />
+                                <button @click="initializeGroups" :disabled="!numGroups || projects.length === 0"
+                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
                                     Crear Grupos
                                 </button>
                             </div>
@@ -552,27 +540,22 @@ const handleSubmit = () => {
 
                         <!-- Mostrar grupos -->
                         <div v-if="groups.length > 0" class="space-y-4">
-                            <div v-for="group in groups" :key="group.id" class="bg-white/5 rounded-lg p-4 border border-white/10">
+                            <div v-for="group in groups" :key="group.id"
+                                class="bg-white/5 rounded-lg p-4 border border-white/10">
                                 <h4 class="text-white font-medium mb-3">{{ group.name }}</h4>
                                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 mb-3">
                                     <div v-for="project in projects" :key="project.nombre" class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            :id="`${group.id}-${project.nombre}`"
+                                        <input type="checkbox" :id="`${group.id}-${project.nombre}`"
                                             :checked="selectedProjects[project.nombre] === group.id"
                                             :disabled="selectedProjects[project.nombre] && selectedProjects[project.nombre] !== group.id"
                                             @change="handleProjectSelection(group.id, project.nombre, ($event.target as HTMLInputElement).checked)"
-                                            class="mr-2 accent-blue-500"
-                                        />
-                                        <label
-                                            :for="`${group.id}-${project.nombre}`"
-                                            :class="[
-                                                'text-sm cursor-pointer',
-                                                selectedProjects[project.nombre] && selectedProjects[project.nombre] !== group.id
-                                                    ? 'text-gray-400'
-                                                    : 'text-blue-200 hover:text-white'
-                                            ]"
-                                        >
+                                            class="mr-2 accent-blue-500" />
+                                        <label :for="`${group.id}-${project.nombre}`" :class="[
+                                            'text-sm cursor-pointer',
+                                            selectedProjects[project.nombre] && selectedProjects[project.nombre] !== group.id
+                                                ? 'text-gray-400'
+                                                : 'text-blue-200 hover:text-white'
+                                        ]">
                                             {{ project.nombre }}
                                         </label>
                                     </div>
@@ -584,10 +567,8 @@ const handleSubmit = () => {
                             </div>
 
                             <div v-if="selectedProjectsList.length > 0" class="flex justify-end">
-                                <button
-                                    @click="generateDynamicTables"
-                                    class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded transition-colors"
-                                >
+                                <button @click="generateDynamicTables"
+                                    class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded transition-colors">
                                     Continuar con Períodos ({{ selectedProjectsList.length }} proyectos seleccionados)
                                 </button>
                             </div>
@@ -606,16 +587,14 @@ const handleSubmit = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(item, index) in minBalances" :key="index" class="border-t border-white/10">
+                                    <tr v-for="(item, index) in minBalances" :key="index"
+                                        class="border-t border-white/10">
                                         <td class="px-4 py-3 text-white">{{ item.periodo }}</td>
                                         <td class="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                :value="item.saldo"
+                                            <input type="number" :value="item.saldo"
                                                 @input="handleMinBalanceChange(index, ($event.target as HTMLInputElement).value)"
                                                 class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                                placeholder="0"
-                                            />
+                                                placeholder="0" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -626,28 +605,28 @@ const handleSubmit = () => {
                     <!-- Paso 4: Costos de Proyectos por Período -->
                     <div v-if="currentStep >= 4 && Object.keys(projectCosts).length > 0" class="mb-8">
                         <h3 class="text-lg font-semibold text-white mb-4">4. Costos de Proyectos por Período</h3>
-                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con los costos base configurados. Puede modificarlos según sea necesario.</p>
+                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con los costos base
+                            configurados. Puede modificarlos según sea necesario.</p>
                         <div class="bg-white/5 rounded-lg overflow-hidden border border-white/10">
                             <table class="w-full">
                                 <thead class="bg-white/10">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-blue-200">Proyecto</th>
-                                        <th v-for="i in parseInt(globalParams.numPeriodos)" :key="i" class="px-4 py-3 text-left text-blue-200">
+                                        <th v-for="i in parseInt(globalParams.numPeriodos)" :key="i"
+                                            class="px-4 py-3 text-left text-blue-200">
                                             Período {{ i }}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="project in selectedProjectsList" :key="project" class="border-t border-white/10">
+                                    <tr v-for="project in selectedProjectsList" :key="project"
+                                        class="border-t border-white/10">
                                         <td class="px-4 py-3 text-white font-medium">{{ project }}</td>
                                         <td v-for="cost in projectCosts[project]" :key="cost.periodo" class="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                :value="cost.costo"
+                                            <input type="number" :value="cost.costo"
                                                 @input="handleProjectCostChange(project, cost.periodo, ($event.target as HTMLInputElement).value)"
                                                 class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                                placeholder="0"
-                                            />
+                                                placeholder="0" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -658,28 +637,29 @@ const handleSubmit = () => {
                     <!-- Paso 5: Recompensas de Proyecto por Período -->
                     <div v-if="currentStep >= 4 && Object.keys(projectRewards).length > 0" class="mb-8">
                         <h3 class="text-lg font-semibold text-white mb-4">5. Recompensas de Proyecto por Período</h3>
-                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con las recompensas base configuradas. Puede modificarlos según sea necesario.</p>
+                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con las recompensas base
+                            configuradas. Puede modificarlos según sea necesario.</p>
                         <div class="bg-white/5 rounded-lg overflow-hidden border border-white/10">
                             <table class="w-full">
                                 <thead class="bg-white/10">
                                     <tr>
                                         <th class="px-4 py-3 text-left text-blue-200">Proyecto</th>
-                                        <th v-for="i in parseInt(globalParams.numPeriodos)" :key="i" class="px-4 py-3 text-left text-blue-200">
+                                        <th v-for="i in parseInt(globalParams.numPeriodos)" :key="i"
+                                            class="px-4 py-3 text-left text-blue-200">
                                             Período {{ i }}
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="project in selectedProjectsList" :key="project" class="border-t border-white/10">
+                                    <tr v-for="project in selectedProjectsList" :key="project"
+                                        class="border-t border-white/10">
                                         <td class="px-4 py-3 text-white font-medium">{{ project }}</td>
-                                        <td v-for="reward in projectRewards[project]" :key="reward.periodo" class="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                :value="reward.recompensa"
+                                        <td v-for="reward in projectRewards[project]" :key="reward.periodo"
+                                            class="px-4 py-3">
+                                            <input type="number" :value="reward.recompensa"
                                                 @input="handleProjectRewardChange(project, reward.periodo, ($event.target as HTMLInputElement).value)"
                                                 class="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white focus:outline-none focus:border-blue-400"
-                                                placeholder="0"
-                                            />
+                                                placeholder="0" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -689,10 +669,8 @@ const handleSubmit = () => {
 
                     <!-- Botón de envío -->
                     <div v-if="currentStep >= 4" class="flex justify-end">
-                        <button
-                            @click="handleSubmit"
-                            class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded transition-all font-medium"
-                        >
+                        <button @click="handleSubmit"
+                            class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded transition-all font-medium">
                             Enviar Modelo de Optimización
                         </button>
                     </div>
@@ -700,7 +678,8 @@ const handleSubmit = () => {
                     <!-- Mensaje de estado -->
                     <div v-if="currentStep >= 4" class="mt-4">
                         <p class="text-blue-200/60 text-sm">
-                            ✓ Modelo configurado con {{ selectedProjectsList.length }} proyectos en {{ groups.length }} grupos
+                            ✓ Modelo configurado con {{ selectedProjectsList.length }} proyectos en {{ groups.length }}
+                            grupos
                         </p>
                     </div>
                 </div>

@@ -19,13 +19,13 @@ use Inertia\Inertia;
 
 class OptimizationController extends Controller
 {
-  /*   public function __construct(
+    public function __construct(
         private CSVGeneratorService $csvGenerator,
         private ResultsProcessorService $resultsProcessor,
         private COSService $cosService,
         private WatsonMLService $watsonService
     ) {}
- */
+
     public function inicio()
     {
         return Inertia::render('dashboard/Inicio');
@@ -66,19 +66,19 @@ class OptimizationController extends Controller
     public function store(/* StoreOptimizationRequest */ Request $request): JsonResponse
     {
         DB::beginTransaction();
-
+        $parameters = $request['parameters'];
         try {
             // 1. Crear optimización
             $optimization = Optimization::create([
-                'name' => $request->name,
-                'description' => $request->description,
+                'description' => $parameters['Description'],
                 'user_id' => auth()->id(),
-                'total_periods' => $request->total_periods,
-                'discount_rate' => $request->discount_rate,
-                'initial_balance' => $request->initial_balance,
-                'nb_must_take_one' => $request->nb_must_take_one ?? 0,
+                'total_periods' => $parameters['T'],
+                'discount_rate' => $parameters['Rate'],
+                'initial_balance' => $parameters['InitBal'],
+                'nb_must_take_one' => $parameters['NbMustTakeOne'] ?? 0,
                 'status' => 'pending',
             ]);
+            dd($request->all());
 
             // 2. Almacenar datos de entrada
             $this->storeInputData($optimization, $request);
@@ -333,7 +333,7 @@ class OptimizationController extends Controller
     /**
      * Cancelar optimización en ejecución
      */
-    public function cancel(Optimization $optimization): JsonResponse
+    /* public function cancel(Optimization $optimization): JsonResponse
     {
 
         try {
@@ -364,12 +364,12 @@ class OptimizationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
+    } */
 
     /**
      * Eliminar optimización
      */
-    public function destroy(Optimization $optimization): JsonResponse
+    /* public function destroy(Optimization $optimization): JsonResponse
     {
 
         try {
@@ -395,12 +395,12 @@ class OptimizationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
+    } */
 
     /**
      * Obtener logs de ejecución desde Watson ML
      */
-    public function logs(Optimization $optimization): JsonResponse
+    /* public function logs(Optimization $optimization): JsonResponse
     {
 
         try {
@@ -428,7 +428,7 @@ class OptimizationController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
-    }
+    } */
 
     /**
      * Procesar resultados de optimización desde IBM COS
@@ -479,6 +479,13 @@ class OptimizationController extends Controller
      */
     private function storeInputData(Optimization $optimization, Request $request): void
     {
+        // Almacenar restricciones de balance
+        if ($request->has('balance_constraints')) {
+            foreach ($request->balance_constraints as $constraint) {
+                $optimization->balanceConstraints()->create($constraint);
+            }
+        }
+
         // Almacenar costos y recompensas de proyectos
         if ($request->has('project_data')) {
             foreach ($request->project_data as $projectData) {
@@ -486,12 +493,7 @@ class OptimizationController extends Controller
             }
         }
 
-        // Almacenar restricciones de balance
-        if ($request->has('balance_constraints')) {
-            foreach ($request->balance_constraints as $constraint) {
-                $optimization->balanceConstraints()->create($constraint);
-            }
-        }
+
 
         // Almacenar grupos must-take-one
         if ($request->has('project_groups')) {

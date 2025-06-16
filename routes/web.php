@@ -23,7 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/optimize', [OptimizationController::class, 'optimize'])->name('dashboard.optimize');
 });
 
-Route::middleware(['auth'])->prefix('api/v1/optimizations')->group(function () {
+Route::middleware(['auth'])->prefix('/optimizations')->group(function () {
     // CRUD básico
     Route::get('/', [OptimizationController::class, 'index'])->name('optimizations.index');
     Route::post('/', [OptimizationController::class, 'store'])->name('optimizations.store');

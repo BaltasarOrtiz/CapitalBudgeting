@@ -14,7 +14,6 @@ class Optimization extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
         'description',
         'status',
         'user_id',
