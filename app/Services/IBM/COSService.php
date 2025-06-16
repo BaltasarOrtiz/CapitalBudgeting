@@ -12,10 +12,12 @@ class COSService
     private IBMAuthService $authService;
     private string $endpoint;
     private string $bucketName;
+    private  $token;
 
     public function __construct(IBMAuthService $authService)
     {
         $this->authService = $authService;
+        $this->token = $this->authService->getToken();
         $this->endpoint = config('ibm.cos.endpoint');
         $this->bucketName = config('ibm.cos.bucket_name');
     }
@@ -26,7 +28,7 @@ class COSService
     public function listFiles(string $prefix = ''): array
     {
         try {
-            $token = $this->authService->getCOSToken();
+            $token = $this->authService->getToken();
             $url = "{$this->endpoint}/{$this->bucketName}";
 
             $params = [];
@@ -59,14 +61,14 @@ class COSService
     {
         try {
             $filename = $filename ?: $file->getClientOriginalName();
-            $token = $this->authService->getCOSToken();
+            $token = $this->authService->requestToken();
             $url = "{$this->endpoint}/{$this->bucketName}/{$filename}";
 
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
                 'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
                 'Content-Type' => $file->getMimeType(),
-            ])->attach('file', file_get_contents($file->getRealPath()), $filename)
+            ])->withBody(file_get_contents($file->getRealPath()), $file->getMimeType())
               ->put($url);
 
             if (!$response->successful()) {
@@ -95,14 +97,15 @@ class COSService
     public function uploadContent(string $content, string $filename, string $contentType = 'text/csv'): array
     {
         try {
-            $token = $this->authService->getCOSToken();
             $url = "{$this->endpoint}/{$this->bucketName}/{$filename}";
 
             $response = Http::withHeaders([
-                'Authorization' => "Bearer {$token}",
+                'Authorization' => "Bearer {$this->token}",
                 'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
                 'Content-Type' => $contentType,
-            ])->withBody($content, $contentType)->put($url);
+            ])
+            ->withBody($content, $contentType)
+            ->put($url);
 
             if (!$response->successful()) {
                 throw new Exception('Error subiendo contenido: ' . $response->body());
@@ -130,7 +133,7 @@ class COSService
     public function downloadFile(string $filename): string
     {
         try {
-            $token = $this->authService->getCOSToken();
+            $token = $this->authService->getToken();
             $url = "{$this->endpoint}/{$this->bucketName}/{$filename}";
 
             $response = Http::withHeaders([
@@ -156,10 +159,10 @@ class COSService
     /**
      * Eliminar archivo del bucket
      */
-    public function deleteFile(string $filename): bool
+    /* public function deleteFile(string $filename): bool
     {
         try {
-            $token = $this->authService->getCOSToken();
+            $token = $this->authService->getToken();
             $url = "{$this->endpoint}/{$this->bucketName}/{$filename}";
 
             $response = Http::withHeaders([
@@ -176,7 +179,7 @@ class COSService
             ]);
             throw $e;
         }
-    }
+    } */
 
     /**
      * Obtener URL de archivo

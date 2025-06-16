@@ -27,17 +27,18 @@ class WatsonMLService
     public function executeJob(array $jobParams = []): array
     {
         try {
-            $token = $this->authService->getWatsonToken();
-            $url = "{$this->endpoint}/v2/jobs/{$this->jobId}/runs";
-
-            $params = array_merge([
-                'space_id' => $this->spaceId,
-            ], $jobParams);
+            $token = $this->authService->getToken();
+            /* $url = "{$this->endpoint}/v2/jobs/{$this->jobId}/runs?space_id={$this->spaceId}"; */
+            $url = "https://api.dataplatform.cloud.ibm.com/v2/jobs/e2e95042-245b-4eb9-8d59-a502dcda33e7/runs?space_id=fb72d28b-7e44-4737-90c0-71284ba5c2bd";
 
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
                 'Content-Type' => 'application/json',
-            ])->post($url, $params);
+                'Content-Length' => 0,
+            ])
+            ->post($url);
+            dd($response);
+
 
             if (!$response->successful()) {
                 throw new Exception('Error ejecutando job: ' . $response->body());
@@ -68,10 +69,10 @@ class WatsonMLService
     /**
      * Consultar estado de un job
      */
-    public function getJobStatus(string $runtimeJobId): array
+    /* public function getJobStatus(string $runtimeJobId): array
     {
         try {
-            $token = $this->authService->getWatsonToken();
+            $token = $this->authService->getToken();
             $url = "{$this->endpoint}/v2/jobs/runs/{$runtimeJobId}";
 
             $response = Http::withHeaders([
@@ -100,15 +101,15 @@ class WatsonMLService
             ]);
             throw $e;
         }
-    }
+    } */
 
     /**
      * Obtener logs de un job
      */
-    public function getJobLogs(string $runtimeJobId): array
+    /* public function getJobLogs(string $runtimeJobId): array
     {
         try {
-            $token = $this->authService->getWatsonToken();
+            $token = $this->authService->getToken();
             $url = "{$this->endpoint}/v2/jobs/runs/{$runtimeJobId}/logs";
 
             $response = Http::withHeaders([
@@ -128,7 +129,7 @@ class WatsonMLService
             ]);
             throw $e;
         }
-    }
+    } */
 
     /**
      * Esperar a que termine un job (polling)

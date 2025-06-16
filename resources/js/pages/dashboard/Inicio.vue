@@ -16,8 +16,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const currentStep = ref<number>(1);
+const isSubmitting = ref<boolean>(false);
 
-// Interfaces
+// Interfaces simplificadas
 interface GlobalParams {
     numPeriodos: string;
     tasaDescuento: string;
@@ -278,33 +279,26 @@ const handleProjectRewardChange = (project: string, period: number, value: strin
     }
 };
 
-// Generar JSON para envío
-const generateJSON = () => {
+// Generar JSON simplificado para envío - CORREGIDO
+const generateOptimizationData = () => {
     const selectedList = selectedProjectsList.value;
 
-    /* // Formato parameters.csv
-    const parameters = [
-        { Parameter: 'T', Value: parseInt(globalParams.numPeriodos) },
-        { Parameter: 'NbMustTakeOne', Value: parseInt(globalParams.nbMustTakeOne) },
-        { Parameter: 'Rate', Value: parseFloat(globalParams.tasaDescuento) },
-        { Parameter: 'InitBal', Value: parseInt(globalParams.saldoInicial) },
-        { Parameter: 'Description', Value: globalParams.description || '' }
-    ]; */
+    // Parámetros principales
     const parameters = {
         T: parseInt(globalParams.numPeriodos),
         NbMustTakeOne: parseInt(globalParams.nbMustTakeOne),
         Rate: parseFloat(globalParams.tasaDescuento),
         InitBal: parseInt(globalParams.saldoInicial),
-        Description: globalParams.description || ''
+        Description: globalParams.description || 'Optimización sin descripción'
     };
 
-    // Formato MinBal.csv
+    // Saldos mínimos
     const minBal = minBalances.value.map(item => ({
         Period: item.periodo,
         MinBal: item.saldo
     }));
 
-    // Formato MustTakeOne.csv
+    // Grupos must-take-one
     const mustTakeOne: Array<{ group: number, project: string }> = [];
     groups.value.forEach(group => {
         group.projects.forEach(project => {
@@ -315,58 +309,78 @@ const generateJSON = () => {
         });
     });
 
-    // Formato ProjectCosts.csv
+    // Costos de proyectos - NOMBRES CAMBIADOS PARA EVITAR CONFLICTO
     const projectCostsData: Array<{ project: string, period: number, cost: number }> = [];
     selectedList.forEach(project => {
-        projectCosts.value[project].forEach(cost => {
-            projectCostsData.push({
-                project: project,
-                period: cost.periodo,
-                cost: cost.costo
+        if (projectCosts.value[project]) {
+            projectCosts.value[project].forEach(cost => {
+                projectCostsData.push({
+                    project: project,
+                    period: cost.periodo,
+                    cost: cost.costo
+                });
             });
-        });
+        }
     });
 
-    // Formato ProjectRewards.csv
+    // Recompensas de proyectos - NOMBRES CAMBIADOS PARA EVITAR CONFLICTO
     const projectRewardsData: Array<{ project: string, period: number, reward: number }> = [];
     selectedList.forEach(project => {
-        projectRewards.value[project].forEach(reward => {
-            projectRewardsData.push({
-                project: project,
-                period: reward.periodo,
-                reward: reward.recompensa
+        if (projectRewards.value[project]) {
+            projectRewards.value[project].forEach(reward => {
+                projectRewardsData.push({
+                    project: project,
+                    period: reward.periodo,
+                    reward: reward.recompensa
+                });
             });
-        });
+        }
     });
 
     return {
         parameters,
         minBal,
         mustTakeOne,
-        projectCosts: projectCostsData,
-        projectRewards: projectRewardsData
+        projectCosts: projectCostsData,      // ← USAR LOS NOMBRES CORREGIDOS
+        projectRewards: projectRewardsData   // ← USAR LOS NOMBRES CORREGIDOS
     };
 };
 
-// Enviar datos
+// Enviar datos simplificado - ahora hace todo el flujo completo
 const handleSubmit = () => {
-    const jsonData = generateJSON();
-    console.log('Datos a enviar:', JSON.stringify(jsonData, null, 2));
-    router.post('/optimizations', jsonData, {
-        onSuccess: () => {
-            alert('Modelo de optimización enviado correctamente');
-        },
-        onError: (error) => {
-            console.error('Error al enviar el modelo:', error);
-            alert('Error al enviar el modelo. Por favor, intente nuevamente.');
-        }
-    });
-    alert('Entrada del modelo enviada correctamente');
+    if (isSubmitting.value) return;
+
+    isSubmitting.value = true;
+
+    try {
+        const optimizationData = generateOptimizationData();
+
+        console.log('Enviando datos:', optimizationData);
+
+        router.post('/optimizations', optimizationData, {
+            onSuccess: (response) => {
+                console.log('Optimización creada exitosamente:', response);
+                alert('¡Optimización creada y ejecutada exitosamente! Consulte el historial para ver el progreso.');
+                // Opcional: redirigir al historial
+                router.visit('/dashboard/historial');
+            },
+            onError: (errors) => {
+                console.error('Error al crear optimización:', errors);
+                alert('Error al crear la optimización. Por favor, revise los datos e intente nuevamente.');
+            },
+            onFinish: () => {
+                isSubmitting.value = false;
+            }
+        });
+    } catch (error) {
+        console.error('Error generando datos de optimización:', error);
+        alert('Error al procesar los datos. Por favor, verifique la configuración e intente nuevamente.');
+        isSubmitting.value = false;
+    }
 };
 </script>
 
 <template>
-
     <Head title="Inicio - Capital Budgeting" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -416,19 +430,19 @@ const handleSubmit = () => {
                                     class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
                                     required />
                             </div>
-
                         </div>
                         <div>
-                            <label class="block text-blue-200 text-sm mb-2">Descripcion</label>
+                            <label class="block text-blue-200 text-sm mb-2">Descripción</label>
                             <textarea v-model="globalParams.description"
                                 @input="handleGlobalParamChange('description', ($event.target as HTMLTextAreaElement).value || '')"
                                 class="w-full bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 resize-y"
-                                rows="2">
+                                rows="2" placeholder="Descripción opcional de la optimización">
                             </textarea>
                         </div>
                         <p class="text-blue-200/60 text-sm">* Todos los campos son obligatorios para continuar</p>
                     </div>
 
+                    <!-- Resto del formulario igual... -->
                     <!-- Paso 2: Gestión de Proyectos -->
                     <div v-if="areGlobalParamsValid" class="mb-8">
                         <h3 class="text-lg font-semibold text-white mb-4">
@@ -667,11 +681,12 @@ const handleSubmit = () => {
                         </div>
                     </div>
 
-                    <!-- Botón de envío -->
+                    <!-- Botón de envío simplificado -->
                     <div v-if="currentStep >= 4" class="flex justify-end">
-                        <button @click="handleSubmit"
-                            class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded transition-all font-medium">
-                            Enviar Modelo de Optimización
+                        <button @click="handleSubmit" :disabled="isSubmitting"
+                            class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:from-gray-500 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded transition-all font-medium">
+                            <span v-if="isSubmitting">Procesando...</span>
+                            <span v-else>Crear y Ejecutar Optimización</span>
                         </button>
                     </div>
 
@@ -680,6 +695,9 @@ const handleSubmit = () => {
                         <p class="text-blue-200/60 text-sm">
                             ✓ Modelo configurado con {{ selectedProjectsList.length }} proyectos en {{ groups.length }}
                             grupos
+                        </p>
+                        <p class="text-blue-200/60 text-xs mt-1">
+                            Al enviar se creará la optimización, generarán los CSVs, se subirán a IBM COS y se ejecutará automáticamente el job.
                         </p>
                     </div>
                 </div>
