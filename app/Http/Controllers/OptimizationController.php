@@ -55,7 +55,7 @@ class OptimizationController extends Controller
     /**
      * Flujo completo: Guardar datos + Generar CSVs + Subir a COS + Ejecutar job
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse | JsonResponse
     {
         DB::beginTransaction();
 
@@ -96,12 +96,6 @@ class OptimizationController extends Controller
 
             DB::commit();
 
-            /* return response()->json([
-                'success' => true,
-                'message' => 'Optimización creada y ejecutada exitosamente',
-                'optimization' => $optimization,
-                'job_id' => $jobResult['runtime_job_id']
-            ], 201); */
             return redirect()->route('optimizations.status', $optimization)->with([
                 'success' => true,
                 'message' => 'Optimización creada y ejecutada exitosamente',

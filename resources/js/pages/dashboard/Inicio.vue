@@ -341,12 +341,11 @@ const generateOptimizationData = () => {
         parameters,
         minBal,
         mustTakeOne,
-        projectCosts: projectCostsData,      // ← USAR LOS NOMBRES CORREGIDOS
-        projectRewards: projectRewardsData   // ← USAR LOS NOMBRES CORREGIDOS
+        projectCosts: projectCostsData,
+        projectRewards: projectRewardsData
     };
 };
 
-// Enviar datos simplificado - ahora hace todo el flujo completo
 const handleSubmit = () => {
     if (isSubmitting.value) return;
 
@@ -361,8 +360,6 @@ const handleSubmit = () => {
             onSuccess: (response) => {
                 console.log('Optimización creada exitosamente:', response);
                 alert('¡Optimización creada y ejecutada exitosamente! Consulte el historial para ver el progreso.');
-                // Opcional: redirigir al historial
-                router.visit('/dashboard/historial');
             },
             onError: (errors) => {
                 console.error('Error al crear optimización:', errors);
