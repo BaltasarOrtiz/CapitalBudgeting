@@ -23,10 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth'])->prefix('/optimizations')->name('optimizations.')->group(function () {
     // Operaciones básicas
     Route::get('/', [OptimizationController::class, 'index'])->name('index');
-    Route::post('/', [OptimizationController::class, 'store'])->name('store'); // Ahora hace todo el flujo
+    Route::post('/', [OptimizationController::class, 'store'])->name('store');
     Route::get('/{optimization}', [OptimizationController::class, 'show'])->name('show');
 
-    // Solo consulta de estado
     Route::get('/{optimization}/status', [OptimizationController::class, 'status'])->name('status');
 });
 

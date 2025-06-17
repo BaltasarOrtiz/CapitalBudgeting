@@ -41,21 +41,22 @@ class OptimizationController extends Controller
 
     public function resultados()
     {
-        $completedOptimizations = Optimization::with(['result', 'selectedProjects'])
+        // Buscar la optimización más reciente del usuario
+        $currentOptimization = Optimization::with(['result', 'selectedProjects', 'periodBalances', 'periodCashFlows'])
             ->where('user_id', auth()->id())
-            ->where('status', 'completed')
-            ->orderBy('completed_at', 'desc')
-            ->paginate(10);
+            ->orderBy('created_at', 'desc')
+            ->first();
 
         return Inertia::render('dashboard/Resultados', [
-            'optimizations' => $completedOptimizations
+            'currentOptimization' => $currentOptimization
         ]);
     }
 
     /**
      * Flujo completo: Guardar datos + Generar CSVs + Subir a COS + Ejecutar job
+     * MODIFICADO: Ahora redirije a resultados en lugar de retornar JSON
      */
-    public function store(Request $request): RedirectResponse | JsonResponse
+    public function store(Request $request): RedirectResponse
     {
         DB::beginTransaction();
 
@@ -78,6 +79,7 @@ class OptimizationController extends Controller
 
             // 3. Generar archivos CSV
             $csvFiles = $this->csvGenerator->generateAllInputFiles($optimization);
+
             // 4. Subir archivos a IBM COS
             $uploadedFiles = [];
             foreach ($csvFiles as $filename => $content) {
@@ -96,11 +98,12 @@ class OptimizationController extends Controller
 
             DB::commit();
 
-            return redirect()->route('optimizations.status', $optimization)->with([
+            return redirect()->route('dashboard.resultados')->with([
                 'success' => true,
                 'message' => 'Optimización creada y ejecutada exitosamente',
                 'optimization_id' => $optimization->id
             ]);
+
         } catch (Exception $e) {
             DB::rollback();
 
@@ -117,11 +120,12 @@ class OptimizationController extends Controller
                 'user_id' => auth()->id()
             ]);
 
-            return response()->json([
+            // En caso de error, también redirigir a resultados con mensaje de error
+            return redirect()->route('dashboard.resultados')->with([
                 'success' => false,
                 'error' => 'Error procesando optimización',
                 'message' => $e->getMessage()
-            ], 500);
+            ]);
         }
     }
 
@@ -133,26 +137,49 @@ class OptimizationController extends Controller
         try {
             $jobStatus = $this->watsonService->getJobStatus($optimization->url_status);
 
-            if ($jobStatus['status'] === 'completed') {
+            if ($jobStatus === 'completed') {
                 // Si el job está completo, actualizar la optimización
                 $optimization->update([
                     'status' => 'completed',
                     'completed_at' => now(),
-                    'execution_log' => "Job completado: {$jobStatus['created_at']}"
+                    'execution_log' => "Job completado exitosamente"
                 ]);
-            } elseif ($jobStatus['status'] === 'failed') {
+
+                // Procesar resultados del COS
+                $results = $this->processOptimizationResults($optimization);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 'completed',
+                    'optimization' => $optimization->fresh(['result', 'selectedProjects', 'periodBalances', 'periodCashFlows']),
+                    'results' => $results
+                ]);
+            } elseif ($jobStatus === 'failed') {
                 $optimization->update([
                     'status' => 'failed',
-                    'execution_log' => "Job fallido: {$jobStatus['created_at']}"
+                    'execution_log' => "Job fallido"
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 'failed',
+                    'optimization' => $optimization->fresh()
                 ]);
             }
 
+            // Si aún está corriendo
             return response()->json([
                 'success' => true,
-                'status' => $jobStatus['status'],
+                'status' => 'running',
                 'optimization' => $optimization
             ]);
+
         } catch (Exception $e) {
+            Log::error('Error consultando estado de optimización', [
+                'optimization_id' => $optimization->id,
+                'error' => $e->getMessage()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'error' => 'Error consultando estado',
@@ -194,6 +221,135 @@ class OptimizationController extends Controller
             'success' => true,
             'data' => $optimizations
         ]);
+    }
+
+    /**
+     * Procesar resultados de la optimización desde COS
+     */
+    private function processOptimizationResults(Optimization $optimization): array
+    {
+        try {
+            // Usar el nuevo método del servicio COS
+            $cosResults = $this->cosService->processOptimizationResults();
+
+            Log::info('Resultados de COS procesados', [
+                'optimization_id' => $optimization->id,
+                'files_processed' => $cosResults['processed_files'],
+                'total_files' => $cosResults['total_files']
+            ]);
+
+            // Guardar resultados en la base de datos
+            foreach ($cosResults['results'] as $filename => $data) {
+                $this->saveOptimizationResults($optimization, $filename, $data);
+            }
+
+            return [
+                'success' => true,
+                'files_processed' => $cosResults['processed_files'],
+                'total_files' => $cosResults['total_files'],
+                'results' => $cosResults['results'],
+                'errors' => $cosResults['errors'] ?? []
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Error procesando resultados de COS', [
+                'optimization_id' => $optimization->id,
+                'error' => $e->getMessage()
+            ]);
+
+            // Verificar disponibilidad de archivos para diagnóstico
+            try {
+                $availability = $this->cosService->checkResultFilesAvailability();
+                Log::info('Disponibilidad de archivos de resultados', [
+                    'optimization_id' => $optimization->id,
+                    'availability' => $availability
+                ]);
+            } catch (Exception $availabilityError) {
+                Log::warning('No se pudo verificar disponibilidad de archivos', [
+                    'error' => $availabilityError->getMessage()
+                ]);
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Convertir CSV a array - MÉTODO REMOVIDO (ahora está en COSService)
+     */
+    // Este método se movió al servicio COS para mejor organización
+
+    /**
+     * Guardar resultados en la base de datos
+     */
+    private function saveOptimizationResults(Optimization $optimization, string $filename, array $data): void
+    {
+        try {
+            switch ($filename) {
+                case 'SolutionResults.csv':
+                    if (!empty($data)) {
+                        $optimization->result()->updateOrCreate([], [
+                            'npv' => $data[0]['NPV'] ?? 0,
+                            'final_balance' => $data[0]['FinalBalance'] ?? 0,
+                            'initial_balance' => $data[0]['InitialBalance'] ?? 0,
+                            'total_periods' => $data[0]['TotalPeriods'] ?? 0,
+                            'total_projects' => $data[0]['TotalProjects'] ?? 0,
+                            'projects_selected' => $data[0]['ProjectsSelected'] ?? 0,
+                            'status' => $data[0]['Status'] ?? 'UNKNOWN'
+                        ]);
+                    }
+                    break;
+
+                case 'SelectedProjectsOutput.csv':
+                    $optimization->selectedProjects()->delete();
+                    foreach ($data as $project) {
+                        $optimization->selectedProjects()->create([
+                            'project_name' => $project['ProjectName'] ?? '',
+                            'start_period' => $project['StartPeriod'] ?? 0,
+                            'setup_cost' => $project['SetupCost'] ?? 0,
+                            'total_reward' => $project['TotalReward'] ?? 0,
+                            'npv_contribution' => $project['NPV_Contribution'] ?? 0
+                        ]);
+                    }
+                    break;
+
+                case 'BalanceResults.csv':
+                    $optimization->periodBalances()->delete();
+                    foreach ($data as $balance) {
+                        $optimization->periodBalances()->create([
+                            'period' => $balance['Period'] ?? 0,
+                            'balance' => $balance['Balance'] ?? 0,
+                            'discounted_balance' => $balance['DiscountedBalance'] ?? 0
+                        ]);
+                    }
+                    break;
+
+                case 'CashFlowResults.csv':
+                    $optimization->periodCashFlows()->delete();
+                    foreach ($data as $cashFlow) {
+                        $optimization->periodCashFlows()->create([
+                            'period' => $cashFlow['Period'] ?? 0,
+                            'cash_in' => $cashFlow['CashIn'] ?? 0,
+                            'cash_out' => $cashFlow['CashOut'] ?? 0,
+                            'net_cash_flow' => $cashFlow['NetCashFlow'] ?? 0
+                        ]);
+                    }
+                    break;
+            }
+
+            Log::info("Datos guardados en BD para archivo: {$filename}", [
+                'optimization_id' => $optimization->id,
+                'records_count' => count($data)
+            ]);
+
+        } catch (Exception $e) {
+            Log::error("Error guardando datos de {$filename} en BD", [
+                'optimization_id' => $optimization->id,
+                'error' => $e->getMessage(),
+                'data_sample' => array_slice($data, 0, 2) // Mostrar muestra de los datos para debug
+            ]);
+            throw $e;
+        }
     }
 
     /**
