@@ -124,37 +124,4 @@ class WatsonMLService
             throw $e;
         }
     } */
-
-    /**
-     * Esperar a que termine un job (polling)
-     */
-    public function waitForJobCompletion(string $runtimeJobId): array
-    {
-        $maxChecks = config('ibm.watson_ml.max_status_checks');
-        $interval = config('ibm.watson_ml.status_check_interval');
-        $checks = 0;
-
-        while ($checks < $maxChecks) {
-            $status = $this->getJobStatus($runtimeJobId);
-
-            // Estados finales
-            if (in_array($status['status'], ['completed', 'failed', 'canceled'])) {
-                return $status;
-            }
-
-            sleep($interval);
-            $checks++;
-        }
-
-        throw new Exception("Job timeout después de {$maxChecks} verificaciones");
-    }
-
-    /**
-     * Ejecutar job y esperar resultados (método combinado)
-     */
-    public function runJobAndWait(array $jobParams = []): array
-    {
-        $execution = $this->executeJob($jobParams);
-        return $this->waitForJobCompletion($execution['runtime_job_id']);
-    }
 }
