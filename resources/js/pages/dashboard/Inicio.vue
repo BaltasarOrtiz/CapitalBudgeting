@@ -222,14 +222,15 @@ const handleProjectSelection = (groupId: number, projectName: string, isSelected
     }
 };
 
-// Generar tablas dinámicas usando los valores base de los proyectos
+// Generar tablas dinámicas usando TODOS los proyectos, no solo los seleccionados
 const generateDynamicTables = () => {
-    const selectedList = selectedProjectsList.value;
+    // CAMBIO: Usar todos los proyectos disponibles, no solo los seleccionados
+    const allProjectsList = projects.value.map(p => p.nombre); // TODOS los proyectos
     const periods = parseInt(globalParams.numPeriodos);
 
-    // Inicializar costos usando los valores base
+    // Inicializar costos usando los valores base de TODOS los proyectos
     const costs: Record<string, ProjectCost[]> = {};
-    selectedList.forEach(projectName => {
+    allProjectsList.forEach(projectName => { // CAMBIO: allProjectsList en lugar de selectedList
         const project = projects.value.find(p => p.nombre === projectName);
         const baseCost = project?.costoBase || 0;
 
@@ -240,9 +241,9 @@ const generateDynamicTables = () => {
     });
     projectCosts.value = costs;
 
-    // Inicializar recompensas usando los valores base
+    // Inicializar recompensas usando los valores base de TODOS los proyectos
     const rewards: Record<string, ProjectReward[]> = {};
-    selectedList.forEach(projectName => {
+    allProjectsList.forEach(projectName => { // CAMBIO: allProjectsList en lugar de selectedList
         const project = projects.value.find(p => p.nombre === projectName);
         const baseReward = project?.recompensaBase || 0;
 
@@ -254,6 +255,74 @@ const generateDynamicTables = () => {
     projectRewards.value = rewards;
 
     currentStep.value = 4;
+};
+
+// También corregir el método generateOptimizationData para enviar todos los proyectos
+const generateOptimizationData = () => {
+    // CAMBIO: Usar todos los proyectos, no solo los seleccionados
+    const allProjectsList = projects.value.map(p => p.nombre);
+
+    // Parámetros principales (sin cambios)
+    const parameters = {
+        T: parseInt(globalParams.numPeriodos),
+        NbMustTakeOne: parseInt(globalParams.nbMustTakeOne),
+        Rate: parseFloat(globalParams.tasaDescuento),
+        InitBal: parseInt(globalParams.saldoInicial),
+        Description: globalParams.description || 'Optimización sin descripción'
+    };
+
+    // Saldos mínimos (sin cambios)
+    const minBal = minBalances.value.map(item => ({
+        Period: item.periodo,
+        MinBal: item.saldo
+    }));
+
+    // Grupos must-take-one (sin cambios)
+    const mustTakeOne: Array<{ group: number, project: string }> = [];
+    groups.value.forEach(group => {
+        group.projects.forEach(project => {
+            mustTakeOne.push({
+                group: group.id,
+                project: project
+            });
+        });
+    });
+
+    // CAMBIO: Costos de TODOS los proyectos
+    const projectCostsData: Array<{ project: string, period: number, cost: number }> = [];
+    allProjectsList.forEach(project => { // CAMBIO: allProjectsList en lugar de selectedList
+        if (projectCosts.value[project]) {
+            projectCosts.value[project].forEach(cost => {
+                projectCostsData.push({
+                    project: project,
+                    period: cost.periodo,
+                    cost: cost.costo
+                });
+            });
+        }
+    });
+
+    // CAMBIO: Recompensas de TODOS los proyectos
+    const projectRewardsData: Array<{ project: string, period: number, reward: number }> = [];
+    allProjectsList.forEach(project => { // CAMBIO: allProjectsList en lugar de selectedList
+        if (projectRewards.value[project]) {
+            projectRewards.value[project].forEach(reward => {
+                projectRewardsData.push({
+                    project: project,
+                    period: reward.periodo,
+                    reward: reward.recompensa
+                });
+            });
+        }
+    });
+
+    return {
+        parameters,
+        minBal,
+        mustTakeOne,
+        projectCosts: projectCostsData,
+        projectRewards: projectRewardsData
+    };
 };
 
 // Manejar cambio en saldo mínimo
@@ -279,72 +348,7 @@ const handleProjectRewardChange = (project: string, period: number, value: strin
     }
 };
 
-// Generar JSON simplificado para envío - CORREGIDO
-const generateOptimizationData = () => {
-    const selectedList = selectedProjectsList.value;
 
-    // Parámetros principales
-    const parameters = {
-        T: parseInt(globalParams.numPeriodos),
-        NbMustTakeOne: parseInt(globalParams.nbMustTakeOne),
-        Rate: parseFloat(globalParams.tasaDescuento),
-        InitBal: parseInt(globalParams.saldoInicial),
-        Description: globalParams.description || 'Optimización sin descripción'
-    };
-
-    // Saldos mínimos
-    const minBal = minBalances.value.map(item => ({
-        Period: item.periodo,
-        MinBal: item.saldo
-    }));
-
-    // Grupos must-take-one
-    const mustTakeOne: Array<{ group: number, project: string }> = [];
-    groups.value.forEach(group => {
-        group.projects.forEach(project => {
-            mustTakeOne.push({
-                group: group.id,
-                project: project
-            });
-        });
-    });
-
-    // Costos de proyectos - NOMBRES CAMBIADOS PARA EVITAR CONFLICTO
-    const projectCostsData: Array<{ project: string, period: number, cost: number }> = [];
-    selectedList.forEach(project => {
-        if (projectCosts.value[project]) {
-            projectCosts.value[project].forEach(cost => {
-                projectCostsData.push({
-                    project: project,
-                    period: cost.periodo,
-                    cost: cost.costo
-                });
-            });
-        }
-    });
-
-    // Recompensas de proyectos - NOMBRES CAMBIADOS PARA EVITAR CONFLICTO
-    const projectRewardsData: Array<{ project: string, period: number, reward: number }> = [];
-    selectedList.forEach(project => {
-        if (projectRewards.value[project]) {
-            projectRewards.value[project].forEach(reward => {
-                projectRewardsData.push({
-                    project: project,
-                    period: reward.periodo,
-                    reward: reward.recompensa
-                });
-            });
-        }
-    });
-
-    return {
-        parameters,
-        minBal,
-        mustTakeOne,
-        projectCosts: projectCostsData,
-        projectRewards: projectRewardsData
-    };
-};
 
 const handleSubmit = () => {
     if (isSubmitting.value) return;
@@ -378,6 +382,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
+
     <Head title="Inicio - Capital Budgeting" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
@@ -616,8 +621,11 @@ const handleSubmit = () => {
                     <!-- Paso 4: Costos de Proyectos por Período -->
                     <div v-if="currentStep >= 4 && Object.keys(projectCosts).length > 0" class="mb-8">
                         <h3 class="text-lg font-semibold text-white mb-4">4. Costos de Proyectos por Período</h3>
-                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con los costos base
-                            configurados. Puede modificarlos según sea necesario.</p>
+                        <p class="text-blue-200/60 text-sm mb-3">
+                            Los valores se inicializan con los costos base configurados para TODOS los proyectos
+                            disponibles.
+                            Puede modificarlos según sea necesario.
+                        </p>
                         <div class="bg-white/5 rounded-lg overflow-hidden border border-white/10">
                             <table class="w-full">
                                 <thead class="bg-white/10">
@@ -630,9 +638,17 @@ const handleSubmit = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="project in selectedProjectsList" :key="project"
+                                    <!-- CAMBIO: Mostrar TODOS los proyectos disponibles -->
+                                    <tr v-for="project in projects.map(p => p.nombre)" :key="project"
                                         class="border-t border-white/10">
-                                        <td class="px-4 py-3 text-white font-medium">{{ project }}</td>
+                                        <td class="px-4 py-3 text-white font-medium">
+                                            {{ project }}
+                                            <!-- Indicador si está seleccionado en algún grupo -->
+                                            <span v-if="selectedProjects[project]"
+                                                class="ml-2 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">
+                                                Grupo {{ selectedProjects[project] }}
+                                            </span>
+                                        </td>
                                         <td v-for="cost in projectCosts[project]" :key="cost.periodo" class="px-4 py-3">
                                             <input type="number" :value="cost.costo"
                                                 @input="handleProjectCostChange(project, cost.periodo, ($event.target as HTMLInputElement).value)"
@@ -648,8 +664,11 @@ const handleSubmit = () => {
                     <!-- Paso 5: Recompensas de Proyecto por Período -->
                     <div v-if="currentStep >= 4 && Object.keys(projectRewards).length > 0" class="mb-8">
                         <h3 class="text-lg font-semibold text-white mb-4">5. Recompensas de Proyecto por Período</h3>
-                        <p class="text-blue-200/60 text-sm mb-3">Los valores se inicializan con las recompensas base
-                            configuradas. Puede modificarlos según sea necesario.</p>
+                        <p class="text-blue-200/60 text-sm mb-3">
+                            Los valores se inicializan con las recompensas base configuradas para TODOS los proyectos
+                            disponibles.
+                            Puede modificarlos según sea necesario.
+                        </p>
                         <div class="bg-white/5 rounded-lg overflow-hidden border border-white/10">
                             <table class="w-full">
                                 <thead class="bg-white/10">
@@ -662,9 +681,17 @@ const handleSubmit = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="project in selectedProjectsList" :key="project"
+                                    <!-- CAMBIO: Mostrar TODOS los proyectos disponibles -->
+                                    <tr v-for="project in projects.map(p => p.nombre)" :key="project"
                                         class="border-t border-white/10">
-                                        <td class="px-4 py-3 text-white font-medium">{{ project }}</td>
+                                        <td class="px-4 py-3 text-white font-medium">
+                                            {{ project }}
+                                            <!-- Indicador si está seleccionado en algún grupo -->
+                                            <span v-if="selectedProjects[project]"
+                                                class="ml-2 px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs">
+                                                Grupo {{ selectedProjects[project] }}
+                                            </span>
+                                        </td>
                                         <td v-for="reward in projectRewards[project]" :key="reward.periodo"
                                             class="px-4 py-3">
                                             <input type="number" :value="reward.recompensa"
@@ -678,23 +705,23 @@ const handleSubmit = () => {
                         </div>
                     </div>
 
-                    <!-- Botón de envío simplificado -->
-                    <div v-if="currentStep >= 4" class="flex justify-end">
-                        <button @click="handleSubmit" :disabled="isSubmitting"
-                            class="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:from-gray-500 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded transition-all font-medium">
-                            <span v-if="isSubmitting">Procesando...</span>
-                            <span v-else>Crear y Ejecutar Optimización</span>
+                    <!-- Botón para enviar la optimización -->
+                    <div class="flex justify-end mt-6">
+                        <button @click="handleSubmit" :disabled="isSubmitting || !areGlobalParamsValid"
+                            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
+                            {{ isSubmitting ? 'Enviando...' : 'Enviar Optimización' }}
                         </button>
                     </div>
 
-                    <!-- Mensaje de estado -->
+                    <!-- Mensaje de estado actualizado -->
                     <div v-if="currentStep >= 4" class="mt-4">
                         <p class="text-blue-200/60 text-sm">
-                            ✓ Modelo configurado con {{ selectedProjectsList.length }} proyectos en {{ groups.length }}
-                            grupos
+                            ✓ Modelo configurado con {{ projects.length }} proyectos disponibles,
+                            {{ selectedProjectsList.length }} proyectos seleccionados en {{ groups.length }} grupos
                         </p>
                         <p class="text-blue-200/60 text-xs mt-1">
-                            Al enviar se creará la optimización, generarán los CSVs, se subirán a IBM COS y se ejecutará automáticamente el job.
+                            Al enviar se creará la optimización, generarán los CSVs para todos los proyectos,
+                            se subirán a IBM COS y se ejecutará automáticamente el job.
                         </p>
                     </div>
                 </div>

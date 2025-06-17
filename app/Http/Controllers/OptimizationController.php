@@ -48,7 +48,11 @@ class OptimizationController extends Controller
             ->first();
 
         return Inertia::render('dashboard/Resultados', [
-            'currentOptimization' => $currentOptimization
+            'currentOptimization' => $currentOptimization,
+            'result' => $currentOptimization ? $currentOptimization->result : null,
+            'selectedProjects' => $currentOptimization ? $currentOptimization->selectedProjects : [],
+            'periodBalances' => $currentOptimization ? $currentOptimization->periodBalances : [],
+            'periodCashFlows' => $currentOptimization ? $currentOptimization->periodCashFlows : [],
         ]);
     }
 
@@ -103,7 +107,6 @@ class OptimizationController extends Controller
                 'message' => 'Optimización creada y ejecutada exitosamente',
                 'optimization_id' => $optimization->id
             ]);
-
         } catch (Exception $e) {
             DB::rollback();
 
@@ -173,7 +176,6 @@ class OptimizationController extends Controller
                 'status' => 'running',
                 'optimization' => $optimization
             ]);
-
         } catch (Exception $e) {
             Log::error('Error consultando estado de optimización', [
                 'optimization_id' => $optimization->id,
@@ -250,7 +252,6 @@ class OptimizationController extends Controller
                 'results' => $cosResults['results'],
                 'errors' => $cosResults['errors'] ?? []
             ];
-
         } catch (Exception $e) {
             Log::error('Error procesando resultados de COS', [
                 'optimization_id' => $optimization->id,
@@ -341,7 +342,6 @@ class OptimizationController extends Controller
                 'optimization_id' => $optimization->id,
                 'records_count' => count($data)
             ]);
-
         } catch (Exception $e) {
             Log::error("Error guardando datos de {$filename} en BD", [
                 'optimization_id' => $optimization->id,
@@ -357,6 +357,11 @@ class OptimizationController extends Controller
      */
     private function saveInputData(Optimization $optimization, array $data): void
     {
+        Log::info('Guardando datos de entrada', [
+            'optimization_id' => $optimization->id,
+            'data_keys' => array_keys($data)
+        ]);
+
         // Guardar restricciones de balance mínimo
         if (isset($data['minBal'])) {
             foreach ($data['minBal'] as $minBal) {
@@ -365,9 +370,12 @@ class OptimizationController extends Controller
                     'min_balance' => $minBal['MinBal']
                 ]);
             }
+            Log::info('Guardadas restricciones de balance mínimo', [
+                'count' => count($data['minBal'])
+            ]);
         }
 
-        // Guardar costos de proyectos
+        // Guardar costos de TODOS los proyectos (no solo los seleccionados)
         if (isset($data['projectCosts'])) {
             foreach ($data['projectCosts'] as $cost) {
                 $optimization->projectInputs()->create([
@@ -377,9 +385,13 @@ class OptimizationController extends Controller
                     'amount' => $cost['cost']
                 ]);
             }
+            Log::info('Guardados costos de proyectos', [
+                'count' => count($data['projectCosts']),
+                'projects' => array_unique(array_column($data['projectCosts'], 'project'))
+            ]);
         }
 
-        // Guardar recompensas de proyectos
+        // Guardar recompensas de TODOS los proyectos (no solo los seleccionados)
         if (isset($data['projectRewards'])) {
             foreach ($data['projectRewards'] as $reward) {
                 $optimization->projectInputs()->create([
@@ -389,9 +401,13 @@ class OptimizationController extends Controller
                     'amount' => $reward['reward']
                 ]);
             }
+            Log::info('Guardadas recompensas de proyectos', [
+                'count' => count($data['projectRewards']),
+                'projects' => array_unique(array_column($data['projectRewards'], 'project'))
+            ]);
         }
 
-        // Guardar grupos must-take-one
+        // Guardar grupos must-take-one (estos sí son solo los seleccionados)
         if (isset($data['mustTakeOne'])) {
             foreach ($data['mustTakeOne'] as $group) {
                 $optimization->projectGroups()->create([
@@ -399,6 +415,23 @@ class OptimizationController extends Controller
                     'project_name' => $group['project']
                 ]);
             }
+            Log::info('Guardados grupos must-take-one', [
+                'count' => count($data['mustTakeOne']),
+                'groups' => array_unique(array_column($data['mustTakeOne'], 'group'))
+            ]);
         }
+
+        // Verificar que se guardaron datos de todos los proyectos esperados
+        $totalProjects = $optimization->projectInputs()
+            ->distinct('project_name')
+            ->count();
+
+        Log::info('Resumen de datos guardados', [
+            'optimization_id' => $optimization->id,
+            'total_unique_projects' => $totalProjects,
+            'total_cost_records' => $optimization->projectCosts()->count(),
+            'total_reward_records' => $optimization->projectRewards()->count(),
+            'total_groups' => $optimization->projectGroups()->distinct('group_id')->count()
+        ]);
     }
 }
