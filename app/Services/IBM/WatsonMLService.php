@@ -2,6 +2,7 @@
 
 namespace App\Services\IBM;
 
+use App\Models\Optimization;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -24,7 +25,7 @@ class WatsonMLService
     /**
      * Ejecutar un job de optimización
      */
-    public function executeJob(array $jobParams = []): array
+    public function executeJob(Optimization $optimization): array
     {
         try {
             $token = $this->authService->getToken();
@@ -49,6 +50,10 @@ class WatsonMLService
                 throw new Exception('runtime_job_id no encontrado en respuesta');
             }
 
+            $optimization->update([
+                'url_status' => $data['href'],
+            ]);
+
             return [
                 'runtime_job_id' => $runtimeJobId,
                 'status' => $data['entity']['job_run']['state'] ?? 'unknown',
@@ -58,7 +63,6 @@ class WatsonMLService
         } catch (Exception $e) {
             Log::error('Error en WatsonMLService::executeJob', [
                 'error' => $e->getMessage(),
-                'params' => $jobParams
             ]);
             throw $e;
         }
@@ -67,15 +71,14 @@ class WatsonMLService
     /**
      * Consultar estado de un job
      */
-    /* public function getJobStatus(string $runtimeJobId): array
+    public function getJobStatus(string $url_status): string
     {
         try {
             $token = $this->authService->getToken();
-            $url = "{$this->endpoint}/v2/jobs/runs/{$runtimeJobId}";
 
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
-            ])->get($url, ['space_id' => $this->spaceId]);
+            ])->get($url_status);
 
             if (!$response->successful()) {
                 throw new Exception('Error consultando estado del job: ' . $response->body());
@@ -84,22 +87,15 @@ class WatsonMLService
             $data = $response->json();
             $entity = $data['entity']['job_run'] ?? [];
 
-            return [
-                'runtime_job_id' => $runtimeJobId,
-                'status' => $entity['state'] ?? 'unknown',
-                'created_at' => $data['metadata']['created_at'] ?? null,
-                'completed_at' => $data['metadata']['modified_at'] ?? null,
-                'error_message' => $entity['error_message'] ?? null,
-            ];
+            return strtolower($entity['state']);
 
         } catch (Exception $e) {
             Log::error('Error en WatsonMLService::getJobStatus', [
-                'runtime_job_id' => $runtimeJobId,
                 'error' => $e->getMessage()
             ]);
             throw $e;
         }
-    } */
+    }
 
     /**
      * Obtener logs de un job

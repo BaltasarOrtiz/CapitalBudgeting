@@ -17,6 +17,7 @@ class Optimization extends Model
         'description',
         'status',
         'user_id',
+        'url_status', // URL del job en IBM Watson ML
         'total_periods',
         'discount_rate',
         'initial_balance',

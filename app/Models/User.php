@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'ibm_token'
+        'ibm_token',
+        'ibm_token_expired',
     ];
 
     /**

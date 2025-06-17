@@ -16,6 +16,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('status', ['pending', 'running', 'completed', 'failed'])->default('pending');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->text('url_status')->nullable(); // URL del job en IBM Watson ML
 
             // Parámetros del modelo (parameters.csv)
             $table->integer('total_periods');           // T

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->text('ibm_token')->nullable();
+            $table->datetime('ibm_token_expired')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

@@ -85,9 +85,7 @@ class OptimizationController extends Controller
             }
 
             // 5. Ejecutar job en IBM Watson ML
-            $jobResult = $this->watsonService->executeJob([
-                'optimization_id' => $optimization->id
-            ]);
+            $jobResult = $this->watsonService->executeJob($optimization);
 
             // 6. Actualizar optimización con información del job
             $optimization->update([
@@ -134,40 +132,27 @@ class OptimizationController extends Controller
     public function status(Optimization $optimization): JsonResponse
     {
         try {
-            // Extraer runtime_job_id del log
-            $log = $optimization->execution_log;
-            if (!$log || !preg_match('/Job iniciado: (.+)/', $log, $matches)) {
-                return response()->json([
-                    'success' => true,
-                    'optimization' => $optimization,
-                    'job_status' => null,
-                    'message' => 'Job no ejecutado aún'
-                ]);
-            }
+            $jobStatus = $this->watsonService->getJobStatus($optimization->url_status);
 
-            $runtimeJobId = trim($matches[1]);
-            $jobStatus = $this->watsonService->getJobStatus($runtimeJobId);
-
-            // Actualizar estado según el resultado del job
-            if ($jobStatus['status'] === 'completed' && $optimization->status === 'running') {
+            if ($jobStatus['status'] === 'completed') {
+                // Si el job está completo, actualizar la optimización
                 $optimization->update([
                     'status' => 'completed',
                     'completed_at' => now(),
-                    'execution_log' => $optimization->execution_log . "\nJob completado exitosamente"
+                    'execution_log' => "Job completado: {$jobStatus['created_at']}"
                 ]);
-            } elseif ($jobStatus['status'] === 'failed' && $optimization->status === 'running') {
+            } elseif ($jobStatus['status'] === 'failed') {
                 $optimization->update([
                     'status' => 'failed',
-                    'execution_log' => $optimization->execution_log . "\nJob falló en Watson ML"
+                    'execution_log' => "Job fallido: {$jobStatus['created_at']}"
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'optimization' => $optimization->fresh(),
-                'job_status' => $jobStatus
+                'status' => $jobStatus['status'],
+                'optimization' => $optimization
             ]);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,

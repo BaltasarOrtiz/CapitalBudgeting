@@ -47,9 +47,9 @@ class IBMAuthService
 
     public function getToken(): string
     {
-        if (!$this->authToken) {
+        if (!$this->authToken || Auth::user()->ibm_token_expired < now()) {
             $this->authToken = $this->requestToken();
-            User::where('id', Auth::id())->update(['ibm_token' => $this->authToken]);
+            User::where('id', Auth::id())->update(['ibm_token' => $this->authToken, 'ibm_token_expired' => now()->addMinutes(55)]);
         }
         return $this->authToken;
     }
