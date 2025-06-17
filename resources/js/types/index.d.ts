@@ -5,6 +5,15 @@ export interface Auth {
     user: User;
 }
 
+export type SharedData = {
+    name: string;
+    quote: { message: string; author: string };
+    auth: Auth;
+    ziggy: Config & { location: string };
+    sidebarOpen: boolean;
+};
+
+
 export interface BreadcrumbItem {
     title: string;
     href: string;

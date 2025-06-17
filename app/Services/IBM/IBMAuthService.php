@@ -48,8 +48,6 @@ class IBMAuthService
     public function getToken(): string
     {
         if (!$this->authToken) {
-            dump('Obteniendo nuevo token de IBM');
-            dump('Usando token de IBM: ' . $this->authToken);
             $this->authToken = $this->requestToken();
             User::where('id', Auth::id())->update(['ibm_token' => $this->authToken]);
         }

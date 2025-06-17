@@ -13,12 +13,28 @@ defineProps<Props>();
 </script>
 
 <template>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 42" :class="className" v-bind="$attrs">
-        <path
-            fill="currentColor"
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M17.2 5.633 8.6.855 0 5.633v26.51l16.2 9 16.2-9v-8.442l7.6-4.223V9.856l-8.6-4.777-8.6 4.777V18.3l-5.6 3.111V5.633ZM38 18.301l-5.6 3.11v-6.157l5.6-3.11V18.3Zm-1.06-7.856-5.54 3.078-5.54-3.079 5.54-3.078 5.54 3.079ZM24.8 18.3v-6.157l5.6 3.111v6.158L24.8 18.3Zm-1 1.732 5.54 3.078-13.14 7.302-5.54-3.078 13.14-7.3v-.002Zm-16.2 7.89 7.6 4.222V38.3L2 30.966V7.92l5.6 3.111v16.892ZM8.6 9.3 3.06 6.222 8.6 3.143l5.54 3.08L8.6 9.3Zm21.8 15.51-13.2 7.334V38.3l13.2-7.334v-6.156ZM9.6 11.034l5.6-3.11v14.6l-5.6 3.11v-14.6Z"
-        />
-    </svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 42" :class="className" v-bind="$attrs">
+    <!-- Gráfico de barras (representando análisis financiero) -->
+    <rect x="4" y="28" width="3" height="10" fill="currentColor" opacity="0.8"/>
+    <rect x="8" y="24" width="3" height="14" fill="currentColor" opacity="0.9"/>
+    <rect x="12" y="20" width="3" height="18" fill="currentColor"/>
+    <rect x="16" y="16" width="3" height="22" fill="currentColor"/>
+
+    <!-- Moneda/Símbolo de dinero central -->
+    <circle cx="28" cy="15" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="M25 15h6M28 12v6M26 13h4M26 17h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+
+    <!-- Flecha de crecimiento -->
+    <path d="M20 32L32 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M28 20h4v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Elementos decorativos (puntos que representan datos/proyecciones) -->
+    <circle cx="6" cy="12" r="1.5" fill="currentColor" opacity="0.6"/>
+    <circle cx="10" cy="8" r="1.5" fill="currentColor" opacity="0.7"/>
+    <circle cx="14" cy="6" r="1.5" fill="currentColor" opacity="0.8"/>
+    <circle cx="18" cy="4" r="1.5" fill="currentColor"/>
+
+    <!-- Base/línea de tiempo -->
+    <line x1="2" y1="38" x2="20" y2="38" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+</svg>
 </template>
