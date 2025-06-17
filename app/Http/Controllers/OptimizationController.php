@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
 class OptimizationController extends Controller
@@ -54,7 +55,7 @@ class OptimizationController extends Controller
     /**
      * Flujo completo: Guardar datos + Generar CSVs + Subir a COS + Ejecutar job
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): RedirectResponse
     {
         DB::beginTransaction();
 
@@ -95,13 +96,17 @@ class OptimizationController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            /* return response()->json([
                 'success' => true,
                 'message' => 'Optimización creada y ejecutada exitosamente',
                 'optimization' => $optimization,
                 'job_id' => $jobResult['runtime_job_id']
-            ], 201);
-
+            ], 201); */
+            return redirect()->route('optimizations.status', $optimization)->with([
+                'success' => true,
+                'message' => 'Optimización creada y ejecutada exitosamente',
+                'optimization_id' => $optimization->id
+            ]);
         } catch (Exception $e) {
             DB::rollback();
 

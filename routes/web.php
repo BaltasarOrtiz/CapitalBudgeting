@@ -20,14 +20,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/resultados', [OptimizationController::class, 'resultados'])->name('dashboard.resultados');
 });
 
-Route::middleware(['auth'])->prefix('/optimizations')->group(function () {
+Route::middleware(['auth'])->prefix('/optimizations')->name('optimizations.')->group(function () {
     // Operaciones básicas
-    Route::get('/', [OptimizationController::class, 'index'])->name('optimizations.index');
-    Route::post('/', [OptimizationController::class, 'store'])->name('optimizations.store'); // Ahora hace todo el flujo
-    Route::get('/{optimization}', [OptimizationController::class, 'show'])->name('optimizations.show');
+    Route::get('/', [OptimizationController::class, 'index'])->name('index');
+    Route::post('/', [OptimizationController::class, 'store'])->name('store'); // Ahora hace todo el flujo
+    Route::get('/{optimization}', [OptimizationController::class, 'show'])->name('show');
 
-    // Solo consulta de estado (ya no hay execute separado)
-    Route::get('/{optimization}/status', [OptimizationController::class, 'status'])->name('optimizations.status');
+    // Solo consulta de estado
+    Route::get('/{optimization}/status', [OptimizationController::class, 'status'])->name('status');
 });
 
 require __DIR__.'/settings.php';
