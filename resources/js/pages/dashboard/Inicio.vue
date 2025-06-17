@@ -437,8 +437,8 @@ const handleSubmit = () => {
                             <label class="block text-blue-200 text-sm mb-2">Descripción</label>
                             <textarea v-model="globalParams.description"
                                 @input="handleGlobalParamChange('description', ($event.target as HTMLTextAreaElement).value || '')"
-                                class="w-full bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 resize-y"
-                                rows="2" placeholder="Descripción opcional de la optimización">
+                                class="w-full bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 resize-y text-sm"
+                                rows="2" placeholder=" Descripción opcional de la optimización">
                             </textarea>
                         </div>
                         <p class="text-blue-200/60 text-sm">* Todos los campos son obligatorios para continuar</p>

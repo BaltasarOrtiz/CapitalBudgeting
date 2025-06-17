@@ -19,7 +19,7 @@ const mainNavItems: NavItem[] = [
         icon: Clock,
     },
     {
-        title: 'Resultados',
+        title: 'Última Optimización',
         href: route('dashboard.resultados'),
         icon: BarChart3,
     },

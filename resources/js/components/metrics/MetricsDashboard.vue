@@ -186,7 +186,7 @@ const formatNumber = (value: number): string => {
             <MetricCard
                 title="Eficiencia de Capital"
                 :value="formatPercentage(advancedMetrics.capitalEfficiency)"
-                :subtitle="`VPN vs Capital Inicial`"
+                :subtitle="`VAN vs Capital Inicial`"
                 :trend="advancedMetrics.capitalEfficiency > 0 ? 'positive' : 'negative'"
                 icon="zap"
             />
@@ -197,7 +197,7 @@ const formatNumber = (value: number): string => {
             <MetricCard
                 title="Valor Promedio/Proyecto"
                 :value="formatCurrency(advancedMetrics.avgProjectValue)"
-                :subtitle="`VPN distribuido`"
+                :subtitle="`VAN distribuido`"
                 trend="neutral"
                 icon="bar-chart"
             />
@@ -326,7 +326,7 @@ const formatNumber = (value: number): string => {
                 <div>
                     <h5 class="font-medium text-blue-200 mb-3">Resultados Financieros</h5>
                     <ul class="space-y-2 text-blue-100">
-                        <li>• VPN generado: <span class="font-medium text-green-400">{{ formatCurrency(optimization.result.npv) }}</span></li>
+                        <li>• VAN generado: <span class="font-medium text-green-400">{{ formatCurrency(optimization.result.npv) }}</span></li>
                         <li>• Inversión total: <span class="font-medium text-white">{{ formatCurrency(advancedMetrics.totalInvestment) }}</span></li>
                         <li>• Eficiencia de capital: <span class="font-medium text-blue-400">{{ formatPercentage(advancedMetrics.capitalEfficiency) }}</span></li>
                     </ul>
