@@ -30,10 +30,4 @@ class SelectedProject extends Model
     {
         return $this->belongsTo(Optimization::class);
     }
-
-    public function getROI(): float
-    {
-        if ($this->setup_cost == 0) return 0;
-        return (($this->total_reward - $this->setup_cost) / $this->setup_cost) * 100;
-    }
 }

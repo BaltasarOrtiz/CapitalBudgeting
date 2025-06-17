@@ -40,10 +40,4 @@ class OptimizationResult extends Model
         if ($this->total_projects == 0) return 0;
         return ($this->projects_selected / $this->total_projects) * 100;
     }
-
-    public function getROI(): float
-    {
-        if ($this->initial_balance == 0) return 0;
-        return ($this->npv / $this->initial_balance) * 100;
-    }
 }
