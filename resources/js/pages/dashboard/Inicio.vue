@@ -456,7 +456,7 @@ const handleSubmit = () => {
                             <p class="text-blue-200 text-sm">Configure los proyectos disponibles con sus costos y
                                 recompensas base</p>
                             <button @click="showAddProject = !showAddProject"
-                                class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded transition-colors text-sm">
+                                class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded transition-colors text-sm cursor-pointer">
                                 + Agregar Proyecto
                             </button>
                         </div>
@@ -485,12 +485,12 @@ const handleSubmit = () => {
                             <div class="flex gap-3">
                                 <button @click="addNewProject"
                                     :disabled="!newProject.nombre.trim() || newProject.costoBase <= 0 || newProject.recompensaBase <= 0"
-                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
+                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors cursor-pointer">
                                     Agregar Proyecto
                                 </button>
                                 <button
                                     @click="showAddProject = false; newProject.nombre = ''; newProject.costoBase = 0; newProject.recompensaBase = 0;"
-                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors">
+                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition-colors cursor-pointer">
                                     Cancelar
                                 </button>
                             </div>
@@ -545,7 +545,7 @@ const handleSubmit = () => {
                                     class="w-48 px-3 py-2 bg-white/10 border border-white/20 rounded text-white placeholder-blue-200/50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
                                     placeholder="Ej: 2" />
                                 <button @click="initializeGroups" :disabled="!numGroups || projects.length === 0"
-                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
+                                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors cursor-pointer">
                                     Crear Grupos
                                 </button>
                             </div>
@@ -584,7 +584,7 @@ const handleSubmit = () => {
 
                             <div v-if="selectedProjectsList.length > 0" class="flex justify-end">
                                 <button @click="generateDynamicTables"
-                                    class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded transition-colors">
+                                    class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded transition-colors cursor-pointer">
                                     Continuar con Períodos ({{ selectedProjectsList.length }} proyectos seleccionados)
                                 </button>
                             </div>
@@ -708,7 +708,7 @@ const handleSubmit = () => {
                     <!-- Botón para enviar la optimización -->
                     <div class="flex justify-end mt-6">
                         <button @click="handleSubmit" :disabled="isSubmitting || !areGlobalParamsValid"
-                            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors">
+                            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors cursor-pointer">
                             {{ isSubmitting ? 'Enviando...' : 'Enviar Optimización' }}
                         </button>
                     </div>

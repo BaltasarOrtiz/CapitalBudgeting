@@ -27,9 +27,8 @@ const user = computed(() => page.props.auth.user as User);
 				<!-- Descripción -->
 				<p class="mb-8 text-lg lg:text-xl text-gray-300 max-w-3xl leading-relaxed">
 					Toma decisiones de inversión inteligentes con nuestras herramientas avanzadas de presupuesto de
-					capital.
-					Analiza proyectos, evalúa riesgos y maximiza el valor de tu empresa con métodos financieros probados
-					como VPN, TIR y análisis de sensibilidad.
+					capitales.
+					Analiza proyectos, evalúa riesgos y maximiza el valor de tu empresa con métodos financieros probados.
 				</p>
 
 				<!-- Iconos financieros decorativos -->
