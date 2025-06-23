@@ -1,7 +1,8 @@
 # Capital Budgeting Optimizer
 
 > Sistema de optimización de Capital Budgenting con integración a IBM Cloud para resolver problemas de asignación óptima de recursos financieros. 
-**Aclaracion:** esto corresponde a un proyecto grupal universitario correspondiente a la materia Lógica y Optimización Aplicada, la implementacion real de esto no representa la realidad y las pruebas realizadas son puramente ficticias sin un sustento profesional teorico que avale la implementación real del sistema. Capital Budget es un ejemplo de problema intermedio de IBM ILOG CPLEX Optimization Studio que fue adaptado posteriormente para su ejecucion en IBM Cloud.
+
+**Aclaracion:** esto corresponde a un proyecto grupal universitario de la asignatura Lógica y Optimización Aplicada, no representa la realidad y las pruebas realizadas son puramente ficticias sin un sustento profesional teórico que avale la implementación del sistema con fines comerciales. Capital Budgeting es un ejemplo de problema intermedio de IBM ILOG CPLEX Optimization Studio que fue adaptado posteriormente para su ejecucion en IBM Cloud.
 
 ## Tabla de Contenidos
 
