@@ -1,27 +1,27 @@
 # Capital Budgeting Optimizer
 
-> Sistema de optimización de presupuesto de capital con integración a IBM Cloud para resolver problemas de asignación óptima de recursos financieros.
+> Sistema de optimización de Capital Budgenting con integración a IBM Cloud para resolver problemas de asignación óptima de recursos financieros. Aclaracion: esto corresponde a un proyecto grupal universitario correspondiente a la materia Lógica y Optimización Aplicada, la implementacion real de esto no representa la realidad y las pruebas realizadas son puramente ficticias sin un sustento profesional teorico que avale la implementación real del sistema. Capital Budget es un ejemplo de problema intermedio de IBM ILOG CPLEX Optimization Studio que fue adaptado posteriormente para su ejecucion en IBM Cloud.
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-- [Descripción](#descripción)
-- [Características](#características)
-- [Tecnologías](#tecnologías)
-- [Arquitectura](#arquitectura)
-- [Diagrama de Base de Datos](#diagrama-de-base-de-datos)
-- [Instalación](#instalación)
-- [Configuración](#configuración)
-- [Uso](#uso)
-- [API Endpoints](#api-endpoints)
-- [Integración IBM Cloud](#integración-ibm-cloud)
-- [Flujo de Trabajo](#flujo-de-trabajo)
-- [Contribución](#contribución)
+- [1. Descripción](#1-descripción)
+- [2. Características](#2-características)
+- [3. Tecnologías](#3-tecnologías)
+- [4. Arquitectura](#4-arquitectura)
+- [5. Diagrama de Base de Datos](#5-diagrama-de-base-de-datos)
+- [6. Instalación](#6-instalación)
+- [7. Configuración](#7-configuración)
+- [8. Uso](#8-uso)
+- [9. API Endpoints](#9-api-endpoints)
+- [10. Integración IBM Cloud](#10-integración-ibm-cloud)
+- [11. Flujo de Trabajo](#11-flujo-de-trabajo)
+- [12. Contribución](#12-contribución)
 
-## 📖 Descripción
+## 1. Descripción
 
 El **Capital Budgeting Optimizer** es una aplicación web que resuelve problemas complejos de asignación de capital financiero utilizando técnicas de optimización matemática. El sistema permite a las empresas tomar decisiones óptimas sobre qué proyectos de inversión ejecutar, cuándo ejecutarlos y cómo maximizar el Valor Presente Neto (VPN) considerando restricciones de liquidez y exclusividad.
 
-### Modelo Matemático
+### 1.1 Modelo Matemático
 
 El sistema implementa un modelo de **Programación Lineal Entera Mixta** que maximiza:
 
@@ -29,7 +29,7 @@ El sistema implementa un modelo de **Programación Lineal Entera Mixta** que max
 VPN = Saldo_final / (1 + tasa_descuento)^T - Saldo_inicial
 ```
 
-### Características del Modelo OPL
+### 1.2 Características del Modelo OPL
 
 El modelo utiliza técnicas avanzadas de **OPL (Optimization Programming Language)** de IBM:
 
@@ -51,48 +51,57 @@ El modelo utiliza técnicas avanzadas de **OPL (Optimization Programming Languag
 - Dependencias temporales (proyectos activos post-inicio)
 - Exclusividad mutua (must-take-one constraints)
 
-## ✨ Características
+## 2. Características
 
-### 🎯 Funcionalidades Principales
+### 2.1 Funcionalidades Principales
 - **Optimización Matemática**: Utiliza IBM CPLEX para resolver problemas de programación lineal entera mixta
 - **Maximización de VPN**: Calcula automáticamente la combinación óptima de proyectos que maximiza el valor presente neto
+- **Dashboard Interactivo**: Interfaz web moderna con 3 páginas principales:
+  - **Inicio**: Configuración y creación de nuevas optimizaciones
+  - **Historial**: Seguimiento de optimizaciones previas con paginación
+  - **Resultados**: Visualización de métricas, gráficos y análisis detallados
+- **Métricas Avanzadas**: Dashboard de métricas con gráficos interactivos (LineChart, BarChart)
 - **Gestión de Restricciones**: 
   - Saldos mínimos por período
   - Proyectos mutuamente excluyentes
   - Unicidad de selección de proyectos
 - **Flexibilidad Temporal**: Soporte para múltiples períodos de planificación
-- **Análisis de Sensibilidad**: Evaluación de diferentes escenarios
+- **Monitoreo en Tiempo Real**: Seguimiento del estado de ejecución con polling automático
 
-### 🔧 Características Técnicas
-- **Entrada Dinámica**: Configuración mediante archivos CSV editables
-- **Procesamiento en la Nube**: Ejecución en IBM Watson Machine Learning
-- **Almacenamiento Escalable**: Integración con IBM Cloud Object Storage
-- **API REST**: Endpoints para integración con sistemas externos
-- **Dashboard Web**: Interfaz intuitiva para usuarios no técnicos
-- **Autenticación Segura**: Sistema de usuarios con tokens IBM personalizados
+### 2.2 Características Técnicas
+- **Entrada Dinámica**: Configuración mediante formularios web interactivos
+- **Procesamiento en la Nube**: Ejecución automática en IBM Watson Machine Learning
+- **Almacenamiento Escalable**: Integración completa con IBM Cloud Object Storage
+- **API REST**: Endpoints completos para integración con sistemas externos
+- **Autenticación Segura**: Sistema de usuarios con tokens IBM personalizados y middleware
+- **Generación Automática de CSV**: Servicio dedicado para crear archivos de entrada dinámicos
+- **Análisis Visual**: Gráficos de flujo de caja, evolución de saldos y contribución de proyectos
 
-## 🛠 Tecnologías
+## 3. Tecnologías
 
-### Backend
-- **Laravel 11** - Framework PHP robusto y escalable
+### 3.1 Backend
+- **Laravel 12** - Framework PHP robusto y escalable
 - **PHP 8.3+** - Lenguaje de programación moderno
 - **MySQL/PostgreSQL** - Base de datos relacional
+- **Eloquent ORM** - Mapeo objeto-relacional
 
-### Frontend
+### 3.2 Frontend
 - **Laravel Inertia** - SPA sin API usando server-side rendering
-- **Vue.js 3** - Framework JavaScript reactivo
+- **Vue.js 3** - Framework JavaScript reactivo con Composition API
 - **Tailwind CSS** - Framework CSS utilitario
+- **Recharts** - Librería de gráficos para visualización de datos
+- **Shadcn/ui** - Componentes de UI modernos
 
-### Optimización
+### 3.3 Optimización
 - **IBM CPLEX** - Solver de optimización matemática
 - **OPL (Optimization Programming Language)** - Lenguaje de modelado
 
-### Cloud & Infraestructura
+### 3.4 Cloud & Infraestructura
 - **IBM Cloud Object Storage (COS)** - Almacenamiento de archivos
 - **IBM Watson Machine Learning** - Ejecución de jobs de optimización
 - **IBM Identity and Access Management** - Autenticación y autorización
 
-## 🏗 Arquitectura
+## 4. Arquitectura
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
@@ -100,22 +109,22 @@ El modelo utiliza técnicas avanzadas de **OPL (Optimization Programming Languag
 │   (Vue.js)      │◄──►│   (Laravel)      │◄──►│                     │
 │                 │    │                  │    │  ┌─────────────────┐│
 │ • Dashboard     │    │ • API REST       │    │  │ Watson ML       ││
-│ • Forms         │    │ • Models         │    │  │ (CPLEX Jobs)    ││
-│ • Results       │    │ • Services       │    │  └─────────────────┘│
-└─────────────────┘    │ • Controllers    │    │  ┌─────────────────┐│
-                       └──────────────────┘    │  │ Cloud Object    ││
-                                               │  │ Storage (CSV)   ││
+│ • Inicio        │    │ • Models         │    │  │ (CPLEX Jobs)    ││
+│ • Historial     │    │ • Services       │    │  └─────────────────┘│
+│ • Resultados    │    │ • Controllers    │    │  ┌─────────────────┐│
+│ • Métricas      │    │ • Middleware     │    │  │ Cloud Object    ││
+└─────────────────┘    └──────────────────┘    │  │ Storage (CSV)   ││
                                                │  └─────────────────┘│
                                                └─────────────────────┘
 ```
 
-## 📊 Diagrama de Base de Datos
+## 5. Diagrama de Base de Datos
 
 ![CapitalBudgeting_DatabaseDiagram](https://github.com/user-attachments/assets/09774444-eb36-4873-ae51-d7e589ae4c98)
 
-### Descripción de Tablas Principales
+### 5.1 Descripción de Tablas Principales
 
-- **users**: Gestión de usuarios del sistema
+- **users**: Gestión de usuarios del sistema con tokens IBM
 - **optimizations**: Registro de problemas de optimización creados
 - **project_inputs**: Costos y recompensas de proyectos por período
 - **balance_constraints**: Restricciones de saldo mínimo por período
@@ -125,16 +134,16 @@ El modelo utiliza técnicas avanzadas de **OPL (Optimization Programming Languag
 - **period_balances**: Evolución de saldos por período
 - **period_cash_flows**: Flujos de caja detallados por período
 
-## 🚀 Instalación
+## 6. Instalación
 
-### Prerrequisitos
+### 6.1 Prerrequisitos
 - PHP 8.3+
 - Composer
 - Node.js 18+
 - MySQL/PostgreSQL
-- Cuenta de IBM Cloud
+- Cuenta de IBM Cloud con servicios COS y Watson ML configurados
 
-### Pasos de Instalación
+### 6.2 Pasos de Instalación
 
 1. **Clonar el repositorio**
 ```bash
@@ -158,20 +167,33 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-5. **Configurar base de datos**
+5. **Configurar base de datos y variables de entorno**
+```bash
+# Editar .env con configuración de BD e IBM Cloud
+nano .env
+```
+
+6. **Ejecutar migraciones**
 ```bash
 php artisan migrate
 php artisan db:seed
 ```
 
-6. **Compilar assets**
+7. **Compilar assets**
 ```bash
 npm run build
+# O para desarrollo:
+npm run dev
 ```
 
-## ⚙️ Configuración
+8. **Levantar servidor**
+```bash
+php artisan serve
+```
 
-### Variables de Entorno
+## 7. Configuración
+
+### 7.1 Variables de Entorno
 
 Configura las siguientes variables en tu archivo `.env`:
 
@@ -202,31 +224,7 @@ IBM_WATSON_ENDPOINT=https://api.dataplatform.cloud.ibm.com
 IBM_AUTH_URL=https://iam.cloud.ibm.com/identity/token
 ```
 
-# Configuración de IBM Cloud
-
-Necesitas configurar varios servicios de IBM Cloud para el funcionamiento completo:
-
-### 1. Cloud Object Storage (COS)
-```bash
-# Crear instancia de COS
-ibmcloud resource service-instance-create capital-budgeting-cos cloud-object-storage lite global
-
-# Crear bucket
-ibmcloud cos bucket-create --bucket capital-budgeting-bucket --ibm-service-instance-id <instance-id>
-
-# Generar credenciales
-ibmcloud resource service-key-create cos-credentials Manager --instance-name capital-budgeting-cos
-```
-
-### 2. Watson Machine Learning  
-```bash
-# Crear instancia de Watson ML
-ibmcloud resource service-instance-create capital-budgeting-ml pm-20 lite us-south
-
-# Crear space para deployments
-ibmcloud ml space-create --name "capital-budgeting-space"
-
-### Ejecución de Modelo CPLEX
+### 7.2 Ejecución de Modelo CPLEX
 
 El archivo `budget_ibm_apto.txt` contiene el modelo OPL que debe ser desplegado en Watson ML:
 
@@ -237,42 +235,50 @@ El archivo `budget_ibm_apto.txt` contiene el modelo OPL que debe ser desplegado 
 
 El modelo procesa automáticamente los 5 CSVs de entrada y genera 4 CSVs de resultados que son descargados y procesados por la aplicación.
 
-## 📖 Uso
+## 8. Uso
 
-### Dashboard Web
+### 8.1 Dashboard Web
 
 **Páginas principales:**
 
 1. **Inicio** (`/dashboard/inicio`): 
    - Crear nueva optimización
-   - Formularios de entrada de datos
-   - Configuración de parámetros y proyectos
+   - Formulario de configuración paso a paso
+   - Gestión dinámica de proyectos
+   - Configuración de parámetros globales (períodos, tasa de descuento, saldo inicial)
+   - Definición de grupos de exclusividad (must-take-one)
+   - Configuración de saldos mínimos por período
+   - Tablas editables de costos y recompensas por proyecto
 
 2. **Historial** (`/dashboard/historial`): 
-   - Lista de optimizaciones previas
+   - Lista paginada de optimizaciones previas
    - Estados de ejecución (pending, running, completed, failed)
-   - Filtros y búsqueda
+   - Filtros por estado y fecha
+   - Acceso rápido a resultados
 
 3. **Resultados** (`/dashboard/resultados`): 
-   - Métricas de VPN y ROI
-   - Gráficos de flujos de caja
-   - Detalles de proyectos seleccionados
-   - Análisis de sensibilidad
+   - Métricas principales: VPN, saldo final, proyectos seleccionados
+   - Dashboard de métricas con gráficos interactivos
+   - Tabla detallada de proyectos seleccionados
+   - Flujos de caja por período
+   - Evolución de saldos
+   - Monitoreo en tiempo real para optimizaciones en curso
 
-**Flujo típico:**
+### 8.2 Flujo típico
 1. **Registro/Login**: Crear cuenta de usuario
 2. **Configurar Problema**: 
    - Parámetros globales (períodos, tasa de descuento, saldo inicial)
-   - Proyectos con costos y recompensas por período
-   - Restricciones de balance mínimo
-   - Grupos de exclusividad (must-take-one)
+   - Gestión de proyectos con costos y recompensas base
+   - Configuración de grupos de exclusividad
+   - Definición de saldos mínimos por período
+   - Ajuste fino de costos y recompensas por período
 3. **Ejecutar**: El sistema automáticamente genera CSVs, los sube a IBM COS y ejecuta el job
-4. **Monitorear**: Seguimiento del estado de ejecución en tiempo real
-5. **Analizar**: Dashboard con métricas, gráficos y detalles de la solución óptima
+4. **Monitorear**: Seguimiento del estado de ejecución en tiempo real con mensajes rotativos
+5. **Analizar**: Dashboard completo con métricas, gráficos y detalles de la solución óptima
 
-### Ejemplo de Entrada
+### 8.3 Ejemplo de Entrada
 
-El sistema procesa los siguientes archivos CSV:
+El sistema procesa los siguientes archivos CSV generados automáticamente:
 
 **parameters.csv** - Configuración global
 ```csv
@@ -286,68 +292,73 @@ NbMustTakeOne,1
 **ProjectCosts.csv** - Costos de implementación
 ```csv
 project,period,cost
-Alpha,1,5000
-Beta,2,8000
-Gamma,1,11000
+IBM_5500,1,4000
+Sun_2000,2,4500
+New_CFO,1,8000
 ```
 
 **ProjectRewards.csv** - Recompensas por período
 ```csv
 project,period,reward
-Alpha,2,10000
-Alpha,3,14000
-Beta,3,16000
-Gamma,2,22000
-Gamma,3,26000
+IBM_5500,2,2000
+IBM_5500,3,2000
+Sun_2000,3,2500
+New_CFO,2,2000
+New_CFO,3,2000
 ```
 
 **MinBal.csv** - Saldos mínimos requeridos
 ```csv
 Period,MinBal
-1,10000
-2,15000
-3,20000
+1,0
+2,0
+3,0
 ```
 
 **MustTakeOne.csv** - Grupos de exclusividad
 ```csv
-### Archivos de Salida
+group,project
+1,IBM_5500
+1,Sun_2000
+```
+
+### 8.4 Archivos de Salida
 
 El modelo genera automáticamente los siguientes CSVs con resultados:
 
 **SolutionResults.csv** - Resumen ejecutivo
 ```csv
 NPV,FinalBalance,InitialBalance,TotalPeriods,TotalProjects,ProjectsSelected,Status
-1500,15000.00,5000,3,3,2,OPTIMAL
+1958,14150.85,5000,3,5,2,OPTIMAL
 ```
 
 **SelectedProjectsOutput.csv** - Proyectos seleccionados
 ```csv
 ProjectName,StartPeriod,SetupCost,TotalReward,NPV_Contribution
-Alpha,1,5000,24000,19000
-Beta,2,8000,16000,8000
+IBM_5500,1,4000,4000,0
+New_CFO,1,8000,4000,-4000
 ```
 
 **BalanceResults.csv** - Evolución de saldos
 ```csv
 Period,Balance,DiscountedBalance
-0,5000.00,5000
-1,10000.00,9615
-2,17000.00,15707
-3,25000.00,22204
+0,5000,5000
+1,7200,6923
+2,9488,8769
+3,14150,12581
 ```
 
 **CashFlowResults.csv** - Flujos de caja
 ```csv
 Period,CashIn,CashOut,NetCashFlow
-1,0,5000,-5000
-2,10000,8000,2000
-3,30000,0,30000
+1,0,12000,-12000
+2,4000,0,4000
+3,4000,0,4000
 ```
 
-## 🔗 API Endpoints
+## 9. API Endpoints
 
-### Optimizaciones
+### 9.1 Optimizaciones
 
 ```http
 # Crear nueva optimización (flujo completo)
@@ -363,105 +374,127 @@ Content-Type: application/json
     "Description": "Optimización Q1 2025"
   },
   "projectCosts": [
-    {"project": "Alpha", "period": 1, "cost": 5000},
-    {"project": "Beta", "period": 2, "cost": 8000}
+    {"project": "IBM_5500", "period": 1, "cost": 4000},
+    {"project": "Sun_2000", "period": 2, "cost": 4500}
   ],
   "projectRewards": [
-    {"project": "Alpha", "period": 2, "reward": 10000},
-    {"project": "Alpha", "period": 3, "reward": 14000}
+    {"project": "IBM_5500", "period": 2, "reward": 2000},
+    {"project": "IBM_5500", "period": 3, "reward": 2000}
   ],
   "minBal": [
-    {"Period": 1, "MinBal": 10000},
-    {"Period": 2, "MinBal": 15000}
+    {"Period": 1, "MinBal": 0},
+    {"Period": 2, "MinBal": 0},
+    {"Period": 3, "MinBal": 0}
   ],
   "mustTakeOne": [
-    {"group": 1, "project": "Alpha"},
-    {"group": 1, "project": "Beta"}
+    {"group": 1, "project": "IBM_5500"},
+    {"group": 1, "project": "Sun_2000"}
   ]
 }
 
 # Consultar estado de ejecución
 GET /optimizations/{id}/status
 
-# Obtener detalles completos con resultados
-GET /optimizations/{id}
-
 # Listar optimizaciones del usuario (con paginación)
-GET /optimizations?status=completed&page=1
+GET /optimizations
 ```
 
-### Rutas Web
+### 9.2 Rutas Web
 
 ```http
 # Dashboard principal
-GET /dashboard/inicio        # Crear nueva optimización
-GET /dashboard/historial     # Historial de optimizaciones  
-GET /dashboard/resultados    # Resultados y análisis
+GET /dashboard                   # Redirige a inicio
+GET /dashboard/inicio           # Crear nueva optimización
+GET /dashboard/historial        # Historial de optimizaciones  
+GET /dashboard/resultados       # Resultados y análisis
 
-# Configuración
-GET /settings/profile        # Perfil de usuario
-GET /settings/password       # Cambio de contraseña
-GET /settings/appearance     # Tema y preferencias
+# Configuración de usuario
+GET /settings/profile           # Perfil de usuario
+GET /settings/password          # Cambio de contraseña
+GET /settings/appearance        # Tema y preferencias
 ```
 
-### Respuesta de Ejemplo
+### 9.3 Respuesta de Ejemplo
 
 ```json
 {
   "success": true,
+  "status": "completed",
   "optimization": {
     "id": 1,
+    "description": "Optimización Q1 2025",
     "status": "completed",
-    "npv": 1500.00,
-    "final_balance": 15000.00,
-    "projects_selected": 2,
+    "total_periods": 3,
+    "discount_rate": 0.04,
+    "initial_balance": 5000,
+    "nb_must_take_one": 1,
+    "result": {
+      "npv": 1958.00,
+      "final_balance": 14150.85,
+      "projects_selected": 2,
+      "status": "OPTIMAL"
+    },
     "selected_projects": [
       {
-        "project_name": "Alpha",
+        "project_name": "IBM_5500",
         "start_period": 1,
-        "setup_cost": 5000.00,
-        "total_reward": 24000.00,
-        "npv_contribution": 19000.00
+        "setup_cost": 4000.00,
+        "total_reward": 4000.00,
+        "npv_contribution": 0.00
       }
     ]
   }
 }
 ```
 
-## ☁️ Integración IBM Cloud
+## 10. Integración IBM Cloud
 
-### Flujo de Datos
+### 10.1 Flujo de Datos
 
-1. **Preparación**: Laravel genera archivos CSV con datos de entrada
-2. **Upload**: Los CSVs se suben a IBM Cloud Object Storage
-3. **Ejecución**: Se dispara job en Watson ML que ejecuta modelo CPLEX
-4. **Resultados**: CPLEX genera CSVs de salida en COS
-5. **Procesamiento**: Laravel descarga y procesa resultados
-6. **Almacenamiento**: Los resultados se guardan en base de datos local
+1. **Preparación**: Laravel genera archivos CSV con datos de entrada usando CSVGeneratorService
+2. **Upload**: Los CSVs se suben a IBM Cloud Object Storage via COSService
+3. **Ejecución**: Se dispara job en Watson ML que ejecuta modelo CPLEX via WatsonMLService
+4. **Monitoreo**: Polling automático del estado con mensajes en tiempo real
+5. **Resultados**: CPLEX genera CSVs de salida en COS automáticamente
+6. **Procesamiento**: Laravel descarga y procesa resultados usando COSService
+7. **Almacenamiento**: Los resultados se guardan en base de datos local con modelos Eloquent
 
-### Servicios Utilizados
+### 10.2 Servicios Utilizados
 
 - **COS**: Almacenamiento temporal de archivos CSV de entrada y salida
 - **Watson ML**: Ejecución de jobs de optimización con CPLEX
-- **IAM**: Autenticación y autorización de servicios
+- **IAM**: Autenticación y autorización de servicios con tokens por usuario
 
-## 🔄 Flujo de Trabajo
+### 10.3 Arquitectura de Servicios
+
+```php
+// Servicios principales implementados
+App\Services\IBM\IBMAuthService     // Gestión de tokens IBM
+App\Services\IBM\COSService         // Operaciones con Object Storage  
+App\Services\IBM\WatsonMLService    // Ejecución y monitoreo de jobs
+App\Services\CSVGeneratorService    // Generación dinámica de CSVs
+```
+
+## 11. Flujo de Trabajo
 
 ```mermaid
 graph TD
-    A[Usuario configura problema] --> B[Laravel genera CSVs]
-    B --> C[Upload a IBM COS]
-    C --> D[Ejecuta job en Watson ML]
+    A[Usuario configura problema en dashboard] --> B[Laravel genera CSVs automáticamente]
+    B --> C[Upload a IBM COS via COSService]
+    C --> D[Ejecuta job en Watson ML via WatsonMLService]
     D --> E[CPLEX resuelve optimización]
-    E --> F[Resultados a COS]
-    F --> G[Laravel descarga resultados]
-    G --> H[Procesa y almacena en DB]
-    H --> I[Dashboard muestra resultados]
+    E --> F[Resultados CSV a COS]
+    F --> G[Polling: Laravel verifica estado]
+    G --> H{¿Completado?}
+    H -->|No| G
+    H -->|Sí| I[Descarga resultados via COSService]
+    I --> J[Procesa y almacena en BD con Eloquent]
+    J --> K[Dashboard muestra métricas y gráficos]
 ```
 
-## 🤝 Contribución
+## 12. Contribución
 
-### Desarrollo Local
+### 12.1 Desarrollo Local
 
 1. Fork del repositorio
 2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
@@ -469,7 +502,7 @@ graph TD
 4. Push a la rama: `git push origin feature/nueva-funcionalidad`
 5. Crear Pull Request
 
-### Estructura del Proyecto
+### 12.2 Estructura del Proyecto
 
 ```
 app/
@@ -481,11 +514,16 @@ app/
 │   ├── Middleware/
 │   │   ├── HandleInertiaRequests.php     # Middleware Inertia
 │   │   └── HandleAppearance.php          # Tema UI
-│   └── Requests/                         # Form requests
+│   ├── Requests/                         # Form requests
+│   └── Resources/
+│       └── OptimizationResource.php     # API Resources
 ├── Models/                               # Modelos Eloquent
 │   ├── Optimization.php                  # Modelo principal
 │   ├── ProjectInput.php                  # Costos/recompensas
 │   ├── OptimizationResult.php            # Resultados
+│   ├── SelectedProject.php               # Proyectos seleccionados
+│   ├── PeriodBalance.php                 # Saldos por período
+│   ├── PeriodCashFlow.php                # Flujos de caja
 │   └── ...
 ├── Services/                             # Servicios de negocio
 │   ├── CSVGeneratorService.php           # Generación CSVs
@@ -502,8 +540,15 @@ database/
 └── seeders/                             # Datos de prueba
 resources/
 ├── js/                                  # Frontend Vue.js
+│   ├── components/
+│   │   └── metrics/
+│   │       ├── MetricsDashboard.vue     # Dashboard de métricas
+│   │       └── charts/                  # Componentes de gráficos
 │   └── pages/
 │       └── dashboard/                   # Páginas del dashboard
+│           ├── Inicio.vue               # Configuración
+│           ├── Historial.vue            # Lista de optimizaciones
+│           └── Resultados.vue           # Visualización de resultados
 └── views/
     └── app.blade.php                    # Layout principal
 routes/
@@ -512,20 +557,19 @@ routes/
 └── settings.php                         # Rutas configuración
 ```
 
-## 📄 Licencia
+## 13. Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
 
-## 👥 Autores
+## 14. Autores
 
-- **Nicolás Quiroga Santini** - *Frontend & Integration* 
-- **Baltasar Ortiz Becerra** - *Backend & Architecture*
+- **Nicolás Quiroga Santini**
+- **Baltasar Ortiz Becerra**
 
-## 🆘 Soporte
+## 15. Soporte
 
 Para soporte o preguntas:
 - Crear issue en GitHub
-- Email: [tu-email@ejemplo.com]
 
 ---
 
