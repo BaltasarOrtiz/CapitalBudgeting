@@ -23,38 +23,6 @@ class COSService
     }
 
     /**
-     * Listar archivos en el bucket
-     */
-    public function listFiles(string $prefix = ''): array
-    {
-        try {
-            $token = $this->authService->getToken();
-            $url = "{$this->endpoint}/{$this->bucketName}";
-
-            $params = [];
-            if ($prefix) {
-                $params['prefix'] = $prefix;
-            }
-
-            $response = Http::withHeaders([
-                'Authorization' => "Bearer {$token}",
-                'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
-            ])->get($url, $params);
-
-            if (!$response->successful()) {
-                throw new Exception('Error listando archivos: ' . $response->body());
-            }
-
-            // Parsear XML response (IBM COS devuelve XML)
-            return $this->parseListResponse($response->body());
-
-        } catch (Exception $e) {
-            Log::error('Error en COSService::listFiles', ['error' => $e->getMessage()]);
-            throw $e;
-        }
-    }
-
-    /**
      * Subir contenido de string como archivo
      */
     public function uploadContent(string $content, string $filename, string $contentType = 'text/csv'): array
@@ -204,30 +172,6 @@ class COSService
         return $availability;
     }
 
-    /**
-     * Eliminar archivo del bucket
-     */
-    /* public function deleteFile(string $filename): bool
-    {
-        try {
-            $token = $this->authService->getToken();
-            $url = "{$this->endpoint}/{$this->bucketName}/{$filename}";
-
-            $response = Http::withHeaders([
-                'Authorization' => "Bearer {$token}",
-                'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
-            ])->delete($url);
-
-            return $response->successful();
-
-        } catch (Exception $e) {
-            Log::error('Error en COSService::deleteFile', [
-                'filename' => $filename,
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
-    } */
 
     /**
      * Obtener URL de archivo
@@ -235,28 +179,6 @@ class COSService
     public function getFileUrl(string $filename): string
     {
         return "{$this->endpoint}/{$this->bucketName}/{$filename}";
-    }
-
-    /**
-     * Parsear respuesta XML de list objects
-     */
-    private function parseListResponse(string $xmlResponse): array
-    {
-        $xml = simplexml_load_string($xmlResponse);
-        $files = [];
-
-        if (isset($xml->Contents)) {
-            foreach ($xml->Contents as $content) {
-                $files[] = [
-                    'name' => (string) $content->Key,
-                    'size' => (int) $content->Size,
-                    'modified' => (string) $content->LastModified,
-                    'etag' => (string) $content->ETag,
-                ];
-            }
-        }
-
-        return $files;
     }
 
     /**

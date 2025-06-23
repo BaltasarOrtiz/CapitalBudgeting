@@ -96,32 +96,4 @@ class WatsonMLService
             throw $e;
         }
     }
-
-    /**
-     * Obtener logs de un job
-     */
-    /* public function getJobLogs(string $runtimeJobId): array
-    {
-        try {
-            $token = $this->authService->getToken();
-            $url = "{$this->endpoint}/v2/jobs/runs/{$runtimeJobId}/logs";
-
-            $response = Http::withHeaders([
-                'Authorization' => "Bearer {$token}",
-            ])->get($url, ['space_id' => $this->spaceId]);
-
-            if (!$response->successful()) {
-                throw new Exception('Error obteniendo logs del job: ' . $response->body());
-            }
-
-            return $response->json();
-
-        } catch (Exception $e) {
-            Log::error('Error en WatsonMLService::getJobLogs', [
-                'runtime_job_id' => $runtimeJobId,
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
-    } */
 }

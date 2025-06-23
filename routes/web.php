@@ -24,7 +24,7 @@ Route::middleware(['auth'])->prefix('/optimizations')->name('optimizations.')->g
     // Operaciones básicas
     Route::get('/', [OptimizationController::class, 'index'])->name('index');
     Route::post('/', [OptimizationController::class, 'store'])->name('store');
-    Route::get('/{optimization}', [OptimizationController::class, 'show'])->name('show');
+    //Route::get('/{optimization}', [OptimizationController::class, 'show'])->name('show');
 
     Route::get('/{optimization}/status', [OptimizationController::class, 'status'])->name('status');
 });
