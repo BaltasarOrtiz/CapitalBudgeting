@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OptimizationResult extends Model
@@ -18,7 +18,7 @@ class OptimizationResult extends Model
         'total_periods',
         'total_projects',
         'projects_selected',
-        'status'
+        'status',
     ];
 
     protected $casts = [
@@ -27,7 +27,7 @@ class OptimizationResult extends Model
         'initial_balance' => 'decimal:2',
         'total_periods' => 'integer',
         'total_projects' => 'integer',
-        'projects_selected' => 'integer'
+        'projects_selected' => 'integer',
     ];
 
     public function optimization(): BelongsTo
@@ -37,7 +37,10 @@ class OptimizationResult extends Model
 
     public function getEfficiencyRate(): float
     {
-        if ($this->total_projects == 0) return 0;
+        if ($this->total_projects == 0) {
+            return 0;
+        }
+
         return ($this->projects_selected / $this->total_projects) * 100;
     }
 }

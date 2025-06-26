@@ -31,7 +31,7 @@ class CSVGeneratorService
             ['T', $optimization->total_periods],
             ['Rate', $optimization->discount_rate],
             ['InitBal', $optimization->initial_balance],
-            ['NbMustTakeOne', $optimization->nb_must_take_one]
+            ['NbMustTakeOne', $optimization->nb_must_take_one],
         ];
 
         return $this->arrayToCSV($data);
@@ -47,20 +47,21 @@ class CSVGeneratorService
             ->orderBy('project_name')
             ->orderBy('period')
             ->get()
-            ->map(fn($cost) => [
+            ->map(fn ($cost) => [
                 $cost->project_name,
                 $cost->period,
-                $cost->amount
+                $cost->amount,
             ])
             ->toArray();
 
         Log::info('Generando CSV de costos', [
             'optimization_id' => $optimization->id,
             'total_records' => count($costs),
-            'unique_projects' => count(array_unique(array_column($costs, 0)))
+            'unique_projects' => count(array_unique(array_column($costs, 0))),
         ]);
 
         $data = array_merge([['project', 'period', 'cost']], $costs);
+
         return $this->arrayToCSV($data);
     }
 
@@ -74,20 +75,21 @@ class CSVGeneratorService
             ->orderBy('project_name')
             ->orderBy('period')
             ->get()
-            ->map(fn($reward) => [
+            ->map(fn ($reward) => [
                 $reward->project_name,
                 $reward->period,
-                $reward->amount
+                $reward->amount,
             ])
             ->toArray();
 
         Log::info('Generando CSV de recompensas', [
             'optimization_id' => $optimization->id,
             'total_records' => count($rewards),
-            'unique_projects' => count(array_unique(array_column($rewards, 0)))
+            'unique_projects' => count(array_unique(array_column($rewards, 0))),
         ]);
 
         $data = array_merge([['project', 'period', 'reward']], $rewards);
+
         return $this->arrayToCSV($data);
     }
 
@@ -99,13 +101,14 @@ class CSVGeneratorService
         $balances = $optimization->balanceConstraints()
             ->orderBy('period')
             ->get()
-            ->map(fn($balance) => [
+            ->map(fn ($balance) => [
                 $balance->period,
-                $balance->min_balance
+                $balance->min_balance,
             ])
             ->toArray();
 
         $data = array_merge([['Period', 'MinBal']], $balances);
+
         return $this->arrayToCSV($data);
     }
 
@@ -119,19 +122,20 @@ class CSVGeneratorService
             ->orderBy('group_id')
             ->orderBy('project_name')
             ->get()
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 $group->group_id,
-                $group->project_name
+                $group->project_name,
             ])
             ->toArray();
 
         Log::info('Generando CSV de must-take-one', [
             'optimization_id' => $optimization->id,
             'total_records' => count($groups),
-            'unique_groups' => count(array_unique(array_column($groups, 0)))
+            'unique_groups' => count(array_unique(array_column($groups, 0))),
         ]);
 
         $data = array_merge([['group', 'project']], $groups);
+
         return $this->arrayToCSV($data);
     }
 

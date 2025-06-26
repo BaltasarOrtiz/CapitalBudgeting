@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 
 class ProjectInput extends Model
 {
@@ -16,12 +15,12 @@ class ProjectInput extends Model
         'project_name',
         'period',
         'type',
-        'amount'
+        'amount',
     ];
 
     protected $casts = [
         'period' => 'integer',
-        'amount' => 'decimal:2'
+        'amount' => 'decimal:2',
     ];
 
     public function optimization(): BelongsTo

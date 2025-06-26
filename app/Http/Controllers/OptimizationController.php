@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OptimizationResource;
 use App\Models\Optimization;
 use App\Services\CSVGeneratorService;
 use App\Services\IBM\COSService;
 use App\Services\IBM\WatsonMLService;
-use Illuminate\Http\Request;
+use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
-use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
-use App\Http\Resources\OptimizationResource;
 
 class OptimizationController extends Controller
 {
@@ -58,14 +58,14 @@ class OptimizationController extends Controller
             'result',
             'selectedProjects',
             'periodBalances',
-            'periodCashFlows'
+            'periodCashFlows',
         ])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->first();
 
         return Inertia::render('dashboard/Resultados', [
-            'currentOptimization' => $currentOptimization
+            'currentOptimization' => $currentOptimization,
         ]);
     }
 
@@ -109,7 +109,7 @@ class OptimizationController extends Controller
             // 6. Actualizar optimización con información del job
             $optimization->update([
                 'input_files_path' => json_encode($uploadedFiles),
-                'execution_log' => "Job iniciado: {$jobResult['runtime_job_id']}"
+                'execution_log' => "Job iniciado: {$jobResult['runtime_job_id']}",
             ]);
 
             DB::commit();
@@ -117,7 +117,7 @@ class OptimizationController extends Controller
             return redirect()->route('dashboard.resultados')->with([
                 'success' => true,
                 'message' => 'Optimización creada y ejecutada exitosamente',
-                'optimization_id' => $optimization->id
+                'optimization_id' => $optimization->id,
             ]);
         } catch (Exception $e) {
             DB::rollback();
@@ -126,20 +126,20 @@ class OptimizationController extends Controller
             if (isset($optimization)) {
                 $optimization->update([
                     'status' => 'failed',
-                    'execution_log' => "Error: {$e->getMessage()}"
+                    'execution_log' => "Error: {$e->getMessage()}",
                 ]);
             }
 
             Log::error('Error en optimización completa', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
 
             // En caso de error, también redirigir a resultados con mensaje de error
             return redirect()->route('dashboard.resultados')->with([
                 'success' => false,
                 'error' => 'Error procesando optimización',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
         }
     }
@@ -157,7 +157,7 @@ class OptimizationController extends Controller
                 $optimization->update([
                     'status' => 'completed',
                     'completed_at' => now(),
-                    'execution_log' => "Job completado exitosamente"
+                    'execution_log' => 'Job completado exitosamente',
                 ]);
 
                 // Procesar resultados del COS
@@ -167,18 +167,18 @@ class OptimizationController extends Controller
                     'success' => true,
                     'status' => 'completed',
                     'optimization' => $optimization->fresh(['result', 'selectedProjects', 'periodBalances', 'periodCashFlows']),
-                    'results' => $results
+                    'results' => $results,
                 ]);
             } elseif ($jobStatus === 'failed') {
                 $optimization->update([
                     'status' => 'failed',
-                    'execution_log' => "Job fallido"
+                    'execution_log' => 'Job fallido',
                 ]);
 
                 return response()->json([
                     'success' => true,
                     'status' => 'failed',
-                    'optimization' => $optimization->fresh()
+                    'optimization' => $optimization->fresh(),
                 ]);
             }
 
@@ -186,18 +186,18 @@ class OptimizationController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 'running',
-                'optimization' => $optimization
+                'optimization' => $optimization,
             ]);
         } catch (Exception $e) {
             Log::error('Error consultando estado de optimización', [
                 'optimization_id' => $optimization->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'error' => 'Error consultando estado',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -214,7 +214,7 @@ class OptimizationController extends Controller
             Log::info('Resultados de COS procesados', [
                 'optimization_id' => $optimization->id,
                 'files_processed' => $cosResults['processed_files'],
-                'total_files' => $cosResults['total_files']
+                'total_files' => $cosResults['total_files'],
             ]);
 
             // Guardar resultados en la base de datos
@@ -227,12 +227,12 @@ class OptimizationController extends Controller
                 'files_processed' => $cosResults['processed_files'],
                 'total_files' => $cosResults['total_files'],
                 'results' => $cosResults['results'],
-                'errors' => $cosResults['errors'] ?? []
+                'errors' => $cosResults['errors'] ?? [],
             ];
         } catch (Exception $e) {
             Log::error('Error procesando resultados de COS', [
                 'optimization_id' => $optimization->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             // Verificar disponibilidad de archivos para diagnóstico
@@ -240,11 +240,11 @@ class OptimizationController extends Controller
                 $availability = $this->cosService->checkResultFilesAvailability();
                 Log::info('Disponibilidad de archivos de resultados', [
                     'optimization_id' => $optimization->id,
-                    'availability' => $availability
+                    'availability' => $availability,
                 ]);
             } catch (Exception $availabilityError) {
                 Log::warning('No se pudo verificar disponibilidad de archivos', [
-                    'error' => $availabilityError->getMessage()
+                    'error' => $availabilityError->getMessage(),
                 ]);
             }
 
@@ -260,7 +260,7 @@ class OptimizationController extends Controller
         try {
             switch ($filename) {
                 case 'SolutionResults.csv':
-                    if (!empty($data)) {
+                    if (! empty($data)) {
                         $optimization->result()->updateOrCreate([], [
                             'npv' => $data[0]['NPV'] ?? 0,
                             'final_balance' => $data[0]['FinalBalance'] ?? 0,
@@ -268,7 +268,7 @@ class OptimizationController extends Controller
                             'total_periods' => $data[0]['TotalPeriods'] ?? 0,
                             'total_projects' => $data[0]['TotalProjects'] ?? 0,
                             'projects_selected' => $data[0]['ProjectsSelected'] ?? 0,
-                            'status' => $data[0]['Status'] ?? 'UNKNOWN'
+                            'status' => $data[0]['Status'] ?? 'UNKNOWN',
                         ]);
                     }
                     break;
@@ -281,7 +281,7 @@ class OptimizationController extends Controller
                             'start_period' => $project['StartPeriod'] ?? 0,
                             'setup_cost' => $project['SetupCost'] ?? 0,
                             'total_reward' => $project['TotalReward'] ?? 0,
-                            'npv_contribution' => $project['NPV_Contribution'] ?? 0
+                            'npv_contribution' => $project['NPV_Contribution'] ?? 0,
                         ]);
                     }
                     break;
@@ -292,7 +292,7 @@ class OptimizationController extends Controller
                         $optimization->periodBalances()->create([
                             'period' => $balance['Period'] ?? 0,
                             'balance' => $balance['Balance'] ?? 0,
-                            'discounted_balance' => $balance['DiscountedBalance'] ?? 0
+                            'discounted_balance' => $balance['DiscountedBalance'] ?? 0,
                         ]);
                     }
                     break;
@@ -304,7 +304,7 @@ class OptimizationController extends Controller
                             'period' => $cashFlow['Period'] ?? 0,
                             'cash_in' => $cashFlow['CashIn'] ?? 0,
                             'cash_out' => $cashFlow['CashOut'] ?? 0,
-                            'net_cash_flow' => $cashFlow['NetCashFlow'] ?? 0
+                            'net_cash_flow' => $cashFlow['NetCashFlow'] ?? 0,
                         ]);
                     }
                     break;
@@ -312,13 +312,13 @@ class OptimizationController extends Controller
 
             Log::info("Datos guardados en BD para archivo: {$filename}", [
                 'optimization_id' => $optimization->id,
-                'records_count' => count($data)
+                'records_count' => count($data),
             ]);
         } catch (Exception $e) {
             Log::error("Error guardando datos de {$filename} en BD", [
                 'optimization_id' => $optimization->id,
                 'error' => $e->getMessage(),
-                'data_sample' => array_slice($data, 0, 2) // Mostrar muestra de los datos para debug
+                'data_sample' => array_slice($data, 0, 2), // Mostrar muestra de los datos para debug
             ]);
             throw $e;
         }
@@ -331,7 +331,7 @@ class OptimizationController extends Controller
     {
         Log::info('Guardando datos de entrada', [
             'optimization_id' => $optimization->id,
-            'data_keys' => array_keys($data)
+            'data_keys' => array_keys($data),
         ]);
 
         // Guardar restricciones de balance mínimo
@@ -339,11 +339,11 @@ class OptimizationController extends Controller
             foreach ($data['minBal'] as $minBal) {
                 $optimization->balanceConstraints()->create([
                     'period' => $minBal['Period'],
-                    'min_balance' => $minBal['MinBal']
+                    'min_balance' => $minBal['MinBal'],
                 ]);
             }
             Log::info('Guardadas restricciones de balance mínimo', [
-                'count' => count($data['minBal'])
+                'count' => count($data['minBal']),
             ]);
         }
 
@@ -354,12 +354,12 @@ class OptimizationController extends Controller
                     'project_name' => $cost['project'],
                     'period' => $cost['period'],
                     'type' => 'cost',
-                    'amount' => $cost['cost']
+                    'amount' => $cost['cost'],
                 ]);
             }
             Log::info('Guardados costos de proyectos', [
                 'count' => count($data['projectCosts']),
-                'projects' => array_unique(array_column($data['projectCosts'], 'project'))
+                'projects' => array_unique(array_column($data['projectCosts'], 'project')),
             ]);
         }
 
@@ -370,12 +370,12 @@ class OptimizationController extends Controller
                     'project_name' => $reward['project'],
                     'period' => $reward['period'],
                     'type' => 'reward',
-                    'amount' => $reward['reward']
+                    'amount' => $reward['reward'],
                 ]);
             }
             Log::info('Guardadas recompensas de proyectos', [
                 'count' => count($data['projectRewards']),
-                'projects' => array_unique(array_column($data['projectRewards'], 'project'))
+                'projects' => array_unique(array_column($data['projectRewards'], 'project')),
             ]);
         }
 
@@ -384,12 +384,12 @@ class OptimizationController extends Controller
             foreach ($data['mustTakeOne'] as $group) {
                 $optimization->projectGroups()->create([
                     'group_id' => $group['group'],
-                    'project_name' => $group['project']
+                    'project_name' => $group['project'],
                 ]);
             }
             Log::info('Guardados grupos must-take-one', [
                 'count' => count($data['mustTakeOne']),
-                'groups' => array_unique(array_column($data['mustTakeOne'], 'group'))
+                'groups' => array_unique(array_column($data['mustTakeOne'], 'group')),
             ]);
         }
 
@@ -403,7 +403,7 @@ class OptimizationController extends Controller
             'total_unique_projects' => $totalProjects,
             'total_cost_records' => $optimization->projectCosts()->count(),
             'total_reward_records' => $optimization->projectRewards()->count(),
-            'total_groups' => $optimization->projectGroups()->distinct('group_id')->count()
+            'total_groups' => $optimization->projectGroups()->distinct('group_id')->count(),
         ]);
     }
 }

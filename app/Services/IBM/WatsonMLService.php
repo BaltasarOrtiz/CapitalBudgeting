@@ -3,15 +3,18 @@
 namespace App\Services\IBM;
 
 use App\Models\Optimization;
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class WatsonMLService
 {
     private IBMAuthService $authService;
+
     private string $endpoint;
+
     private string $spaceId;
+
     private string $jobId;
 
     public function __construct(IBMAuthService $authService)
@@ -35,18 +38,17 @@ class WatsonMLService
                 'Authorization' => "Bearer {$token}",
                 'Content-Type' => 'application/json',
             ])
-            ->withBody('{}', 'application/json')
-            ->post($url);
+                ->withBody('{}', 'application/json')
+                ->post($url);
 
-
-            if (!$response->successful()) {
-                throw new Exception('Error ejecutando job: ' . $response->body());
+            if (! $response->successful()) {
+                throw new Exception('Error ejecutando job: '.$response->body());
             }
 
             $data = $response->json();
             $runtimeJobId = $data['entity']['job_run']['runtime_job_id'] ?? null;
 
-            if (!$runtimeJobId) {
+            if (! $runtimeJobId) {
                 throw new Exception('runtime_job_id no encontrado en respuesta');
             }
 
@@ -80,8 +82,8 @@ class WatsonMLService
                 'Authorization' => "Bearer {$token}",
             ])->get($url_status);
 
-            if (!$response->successful()) {
-                throw new Exception('Error consultando estado del job: ' . $response->body());
+            if (! $response->successful()) {
+                throw new Exception('Error consultando estado del job: '.$response->body());
             }
 
             $data = $response->json();
@@ -91,7 +93,7 @@ class WatsonMLService
 
         } catch (Exception $e) {
             Log::error('Error en WatsonMLService::getJobStatus', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }

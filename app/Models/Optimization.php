@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\User;
 
 class Optimization extends Model
 {
@@ -25,7 +24,7 @@ class Optimization extends Model
         'input_files_path',
         'output_files_path',
         'execution_log',
-        'completed_at'
+        'completed_at',
     ];
 
     protected $casts = [
@@ -33,7 +32,7 @@ class Optimization extends Model
         'discount_rate' => 'decimal:6',
         'initial_balance' => 'decimal:2',
         'total_periods' => 'integer',
-        'nb_must_take_one' => 'integer'
+        'nb_must_take_one' => 'integer',
     ];
 
     // Relaciones - Datos de entrada

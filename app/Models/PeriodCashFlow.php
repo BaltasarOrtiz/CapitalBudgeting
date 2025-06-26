@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PeriodCashFlow extends Model
@@ -15,14 +15,14 @@ class PeriodCashFlow extends Model
         'period',
         'cash_in',
         'cash_out',
-        'net_cash_flow'
+        'net_cash_flow',
     ];
 
     protected $casts = [
         'period' => 'integer',
         'cash_in' => 'decimal:2',
         'cash_out' => 'decimal:2',
-        'net_cash_flow' => 'decimal:2'
+        'net_cash_flow' => 'decimal:2',
     ];
 
     public function optimization(): BelongsTo

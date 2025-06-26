@@ -2,16 +2,18 @@
 
 namespace App\Services\IBM;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class COSService
 {
     private IBMAuthService $authService;
+
     private string $endpoint;
+
     private string $bucketName;
+
     private $token;
 
     public function __construct(IBMAuthService $authService)
@@ -35,11 +37,11 @@ class COSService
                 'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
                 'Content-Type' => $contentType,
             ])
-            ->withBody($content, $contentType)
-            ->put($url);
+                ->withBody($content, $contentType)
+                ->put($url);
 
-            if (!$response->successful()) {
-                throw new Exception('Error subiendo contenido: ' . $response->body());
+            if (! $response->successful()) {
+                throw new Exception('Error subiendo contenido: '.$response->body());
             }
 
             return [
@@ -52,7 +54,7 @@ class COSService
         } catch (Exception $e) {
             Log::error('Error en COSService::uploadContent', [
                 'filename' => $filename,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -72,8 +74,8 @@ class COSService
                 'ibm-service-instance-id' => config('ibm.cos.service_instance_id'),
             ])->get($url);
 
-            if (!$response->successful()) {
-                throw new Exception("Error descargando archivo {$filename}: " . $response->body());
+            if (! $response->successful()) {
+                throw new Exception("Error descargando archivo {$filename}: ".$response->body());
             }
 
             return $response->body();
@@ -81,7 +83,7 @@ class COSService
         } catch (Exception $e) {
             Log::error('Error en COSService::downloadFile', [
                 'filename' => $filename,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -97,7 +99,7 @@ class COSService
             'SolutionResults.csv',
             'SelectedProjectsOutput.csv',
             'BalanceResults.csv',
-            'CashFlowResults.csv'
+            'CashFlowResults.csv',
         ];
 
         $results = [];
@@ -113,19 +115,19 @@ class COSService
             } catch (Exception $e) {
                 $errors[$filename] = $e->getMessage();
                 Log::warning("No se pudo descargar archivo de resultados: {$filename}", [
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
         // Si no se pudo descargar ningún archivo, lanzar excepción
         if (empty($results)) {
-            throw new Exception('No se pudo descargar ningún archivo de resultados. Errores: ' . json_encode($errors));
+            throw new Exception('No se pudo descargar ningún archivo de resultados. Errores: '.json_encode($errors));
         }
 
         return [
             'files' => $results,
-            'errors' => $errors
+            'errors' => $errors,
         ];
     }
 
@@ -146,7 +148,8 @@ class COSService
             return $response->successful();
 
         } catch (Exception $e) {
-            Log::debug("Error verificando existencia de archivo {$filename}: " . $e->getMessage());
+            Log::debug("Error verificando existencia de archivo {$filename}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -160,7 +163,7 @@ class COSService
             'SolutionResults.csv',
             'SelectedProjectsOutput.csv',
             'BalanceResults.csv',
-            'CashFlowResults.csv'
+            'CashFlowResults.csv',
         ];
 
         $availability = [];
@@ -171,7 +174,6 @@ class COSService
 
         return $availability;
     }
-
 
     /**
      * Obtener URL de archivo
@@ -222,12 +224,12 @@ class COSService
                     $processedResults[$filename] = $arrayData;
 
                     Log::info("Archivo procesado exitosamente: {$filename}", [
-                        'rows_count' => count($arrayData)
+                        'rows_count' => count($arrayData),
                     ]);
 
                 } catch (Exception $e) {
-                    Log::error("Error procesando archivo {$filename}: " . $e->getMessage());
-                    throw new Exception("Error procesando {$filename}: " . $e->getMessage());
+                    Log::error("Error procesando archivo {$filename}: ".$e->getMessage());
+                    throw new Exception("Error procesando {$filename}: ".$e->getMessage());
                 }
             }
 
@@ -235,12 +237,12 @@ class COSService
                 'results' => $processedResults,
                 'errors' => $downloadResult['errors'] ?? [],
                 'processed_files' => array_keys($processedResults),
-                'total_files' => count($processedResults)
+                'total_files' => count($processedResults),
             ];
 
         } catch (Exception $e) {
             Log::error('Error procesando resultados de optimización', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }

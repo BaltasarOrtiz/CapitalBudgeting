@@ -2,17 +2,19 @@
 
 namespace App\Services\IBM;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class IBMAuthService
 {
     private string $tokenUrl;
+
     private string $grantType;
-    private  $authToken;
+
+    private $authToken;
 
     public function __construct()
     {
@@ -35,11 +37,12 @@ class IBMAuthService
             $data = $response->json();
 
             $this->authToken = $data['access_token'];
+
             return $data['access_token'];
 
         } catch (Exception $e) {
             Log::error('Error obteniendo token IBM', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
             throw $e;
         }
@@ -47,10 +50,11 @@ class IBMAuthService
 
     public function getToken(): string
     {
-        if (!$this->authToken || Auth::user()->ibm_token_expired < now()) {
+        if (! $this->authToken || Auth::user()->ibm_token_expired < now()) {
             $this->authToken = $this->requestToken();
             User::where('id', Auth::id())->update(['ibm_token' => $this->authToken, 'ibm_token_expired' => now()->addMinutes(55)]);
         }
+
         return $this->authToken;
     }
 }
